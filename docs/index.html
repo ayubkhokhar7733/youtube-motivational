@@ -14,6 +14,7 @@
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
       --accent: #38bdf8;
+      --gold: #ffdc32;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
@@ -242,6 +243,94 @@
       color: var(--text-muted);
       margin-top: 5px;
       display: block;
+    }
+
+    /* Speaker Photo Upload Component */
+    .speaker-photo-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .avatar-preview-wrapper {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 3px solid var(--gold);
+      background: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-shadow: 0 0 12px rgba(255, 220, 50, 0.3);
+    }
+
+    .avatar-preview-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .avatar-placeholder-icon {
+      font-size: 28px;
+      color: var(--text-muted);
+    }
+
+    .photo-controls {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .photo-btn-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-file-picker {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-file-picker:hover {
+      background: rgba(59, 130, 246, 0.3);
+      border-color: var(--accent);
+    }
+
+    .btn-remove-photo {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--danger);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-remove-photo:hover {
+      background: rgba(239, 68, 68, 0.25);
     }
 
     /* Aspect Ratio Selector Cards */
@@ -580,6 +669,32 @@
           <span class="form-hint">Burned cleanly into the speaker attribution badge.</span>
         </div>
 
+        <!-- Speaker Photo / Avatar Upload -->
+        <div class="form-group">
+          <label>Speaker Photo / Headshot <span style="color:var(--text-muted);font-weight:400;">(optional — burned into video badge)</span></label>
+          
+          <div class="speaker-photo-box">
+            <div class="avatar-preview-wrapper" id="avatar-wrapper">
+              <span class="avatar-placeholder-icon" id="avatar-icon">👤</span>
+              <img id="avatar-preview" class="avatar-preview-img" alt="Speaker Avatar Preview">
+            </div>
+
+            <div class="photo-controls">
+              <div class="photo-btn-row">
+                <input type="file" id="speaker_image_file" accept="image/png, image/jpeg, image/webp" style="display: none;" onchange="handleFileUpload(event)">
+                <button type="button" class="btn-file-picker" onclick="document.getElementById('speaker_image_file').click()">
+                  📷 Upload Photo
+                </button>
+                <button type="button" id="btn-remove-photo" class="btn-remove-photo" onclick="clearSpeakerPhoto()">
+                  ✕ Remove
+                </button>
+              </div>
+              <input type="url" id="speaker_image_url" class="form-input" style="padding: 8px 12px; font-size: 12px;" placeholder="Or paste direct Image URL (https://...)" oninput="handleUrlInput(this.value)">
+            </div>
+          </div>
+          <span class="form-hint">Cropped into a circular speaker badge overlay with a gold border at the top-left of the video.</span>
+        </div>
+
         <!-- Aspect Ratio Selection -->
         <div class="form-group">
           <label>Video Format &amp; Dimensions</label>
@@ -638,6 +753,8 @@
     const REPO_NAME = "youtube-motivational";
     const WORKFLOW_FILE = "repurpose.yml";
 
+    let speakerPhotoData = ""; // Holds base64 or URL
+
     // 1. PIN Lock Verification
     function checkAuth() {
       if (sessionStorage.getItem("studio_auth") === PASSKEY) {
@@ -688,7 +805,69 @@
       }
     }
 
-    // 3. UI Helpers
+    // 3. Speaker Photo Handling (Upload & Resize)
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          // Resize down to 128x128 circle avatar to keep payload super light (<10KB)
+          const canvas = document.createElement("canvas");
+          const size = 128;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext("2d");
+
+          const minDim = Math.min(img.width, img.height);
+          const sx = (img.width - minDim) / 2;
+          const sy = (img.height - minDim) / 2;
+
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+          speakerPhotoData = canvas.toDataURL("image/jpeg", 0.85);
+
+          renderAvatarPreview(speakerPhotoData);
+          document.getElementById("speaker_image_url").value = "";
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleUrlInput(url) {
+      const trimmed = url.trim();
+      if (trimmed) {
+        speakerPhotoData = trimmed;
+        renderAvatarPreview(trimmed);
+      } else {
+        clearSpeakerPhoto();
+      }
+    }
+
+    function renderAvatarPreview(src) {
+      const imgEl = document.getElementById("avatar-preview");
+      const iconEl = document.getElementById("avatar-icon");
+      const removeBtn = document.getElementById("btn-remove-photo");
+
+      imgEl.src = src;
+      imgEl.style.display = "block";
+      iconEl.style.display = "none";
+      removeBtn.style.display = "inline-block";
+    }
+
+    function clearSpeakerPhoto() {
+      speakerPhotoData = "";
+      document.getElementById("speaker_image_file").value = "";
+      document.getElementById("speaker_image_url").value = "";
+      document.getElementById("avatar-preview").style.display = "none";
+      document.getElementById("avatar-preview").src = "";
+      document.getElementById("avatar-icon").style.display = "block";
+      document.getElementById("btn-remove-photo").style.display = "none";
+    }
+
+    // 4. Aspect Ratio UI Helpers
     let selectedAspect = "landscape";
     function selectAspect(aspect) {
       selectedAspect = aspect;
@@ -696,7 +875,7 @@
       document.getElementById("card-portrait").classList.toggle("active", aspect === "portrait");
     }
 
-    // 4. Trigger GitHub Actions Cloud Runner
+    // 5. Trigger GitHub Actions Cloud Runner
     async function triggerWorkflow(e) {
       e.preventDefault();
       const token = getToken();
@@ -727,6 +906,7 @@
             inputs: {
               youtube_url: url,
               speaker_name: speaker,
+              speaker_image: speakerPhotoData || "",
               aspect: selectedAspect,
               upload: false,
               audio_only: audioOnly,
@@ -736,9 +916,10 @@
         });
 
         if (res.status === 204) {
-          alert("🎉 Cloud pipeline launched successfully! Rendering video on GitHub Actions.");
+          alert("🎉 Cloud pipeline launched successfully! Rendering video with speaker badge on GitHub Actions.");
           document.getElementById("youtube_url").value = "";
           document.getElementById("speaker_name").value = "";
+          clearSpeakerPhoto();
           setTimeout(fetchRuns, 3000);
         } else {
           const err = await res.json();
@@ -752,7 +933,7 @@
       }
     }
 
-    // 5. Fetch Recent Cloud Runs and Output Artifacts
+    // 6. Fetch Recent Cloud Runs and Output Artifacts
     async function fetchRuns() {
       const token = getToken();
       const list = document.getElementById("runs-list");

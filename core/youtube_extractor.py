@@ -298,17 +298,45 @@ def detect_speaker_info(video_title: str, video_desc: str, transcript: str) -> d
 
 
 def _create_circular_avatar(image_path: str, size: int = 110) -> Image.Image:
-    """Crops an image into a circle with anti-aliasing and a stylish accent border."""
-    try:
-        im = Image.open(image_path).convert("RGBA")
-        # Center crop to square
-        w, h = im.size
-        min_dim = min(w, h)
-        left = (w - min_dim) // 2
-        top = (h - min_dim) // 2
-        im = im.crop((left, top, left + min_dim, top + min_dim))
-        im = im.resize((size, size), Image.LANCZOS)
-    except Exception:
+    """Crops an image into a circle with anti-aliasing and a stylish accent border.
+    Supports local file paths, remote HTTP URLs, and base64 data URIs.
+    """
+    im = None
+    if image_path:
+        try:
+            image_str = str(image_path).strip()
+            # 1. Base64 data URI or raw base64
+            if "base64," in image_str:
+                import base64
+                import io
+                header, encoded = image_str.split("base64,", 1)
+                img_bytes = base64.b64decode(encoded.strip())
+                im = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
+            elif image_str.startswith("http://") or image_str.startswith("https://"):
+                import io
+                import requests
+                resp = requests.get(image_str, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+                if resp.status_code == 200:
+                    im = Image.open(io.BytesIO(resp.content)).convert("RGBA")
+            elif os.path.exists(image_str):
+                im = Image.open(image_str).convert("RGBA")
+        except Exception as e:
+            print(f"[youtube_extractor] Avatar load error from '{str(image_path)[:30]}...': {e}")
+            im = None
+
+    if im is not None:
+        try:
+            # Center crop to square
+            w, h = im.size
+            min_dim = min(w, h)
+            left = (w - min_dim) // 2
+            top = (h - min_dim) // 2
+            im = im.crop((left, top, left + min_dim, top + min_dim))
+            im = im.resize((size, size), Image.LANCZOS)
+        except Exception:
+            im = None
+
+    if im is None:
         # Fallback to sleek geometric portrait badge
         im = Image.new("RGBA", (size, size), (24, 28, 38, 255))
         draw_im = ImageDraw.Draw(im)

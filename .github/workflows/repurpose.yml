@@ -12,6 +12,11 @@ on:
         required: false
         default: ''
         type: string
+      speaker_image:
+        description: 'Speaker Photo / Avatar (Image URL or base64 data)'
+        required: false
+        default: ''
+        type: string
       aspect:
         description: 'Aspect Ratio: landscape (16:9) or portrait (9:16 Shorts)'
         required: false
@@ -89,6 +94,10 @@ jobs:
           
           if [ -n "${{ github.event.inputs.speaker_name }}" ]; then
             CMD="$CMD --speaker-name \"${{ github.event.inputs.speaker_name }}\""
+          fi
+          
+          if [ -n "${{ github.event.inputs.speaker_image }}" ]; then
+            CMD="$CMD --speaker-image \"${{ github.event.inputs.speaker_image }}\""
           fi
           
           ASPECT="${{ github.event.inputs.aspect || 'landscape' }}"
