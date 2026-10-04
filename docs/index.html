@@ -8,7 +8,7 @@
   <style>
     :root {
       --bg: #090d16;
-      --card-bg: rgba(17, 24, 39, 0.75);
+      --card-bg: rgba(17, 24, 39, 0.85);
       --border: rgba(255, 255, 255, 0.08);
       --border-focus: #3b82f6;
       --primary: #2563eb;
@@ -44,7 +44,7 @@
       transform: translateX(-50%);
       width: 700px;
       height: 500px;
-      background: radial-gradient(circle, rgba(37, 99, 235, 0.18) 0%, rgba(56, 189, 248, 0.05) 50%, transparent 70%);
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(56, 189, 248, 0.06) 50%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -101,52 +101,61 @@
 
     .pin-input {
       width: 100%;
-      padding: 14px;
-      font-size: 20px;
-      letter-spacing: 0.3em;
-      text-align: center;
       background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border);
       border-radius: 12px;
+      padding: 14px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 8px;
+      text-align: center;
       color: #fff;
+      margin-bottom: 18px;
       outline: none;
-      margin-bottom: 16px;
       transition: all 0.2s ease;
     }
 
     .pin-input:focus {
       border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
 
     .btn-unlock {
       width: 100%;
-      padding: 14px;
-      font-size: 15px;
-      font-weight: 700;
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px;
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      transition: opacity 0.2s;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
     }
-    .btn-unlock:hover { opacity: 0.9; }
 
-    /* Header */
+    .btn-unlock:hover {
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+      transform: translateY(-1px);
+    }
+
+    /* Main Dashboard Header */
     header {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
+      position: relative;
     }
 
     .badge-top {
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      background: rgba(59, 130, 246, 0.12);
+      padding: 6px 14px;
       font-size: 12px;
       font-weight: 700;
-      padding: 5px 12px;
-      background: rgba(37, 99, 235, 0.15);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
       border: 1px solid rgba(59, 130, 246, 0.35);
       color: var(--accent);
       border-radius: 20px;
@@ -248,28 +257,35 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       cursor: pointer;
-      text-align: center;
-      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
       position: relative;
+      transition: all 0.2s ease;
     }
 
-    .aspect-card input {
-      position: absolute;
-      opacity: 0;
+    .aspect-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.02);
     }
 
     .aspect-card.active {
-      background: rgba(37, 99, 235, 0.18);
-      border-color: var(--border-focus);
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .aspect-card input[type="radio"] {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      accent-color: var(--accent);
     }
 
     .aspect-label {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       color: #fff;
-      display: block;
-      margin-bottom: 2px;
     }
 
     .aspect-desc {
@@ -277,22 +293,23 @@
       color: var(--text-muted);
     }
 
-    /* Toggle Switches */
+    /* Switch Component */
     .toggle-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 12px 14px;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border);
       border-radius: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       cursor: pointer;
     }
 
     .toggle-info {
-      flex: 1;
-      margin-right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .toggle-title {
@@ -308,17 +325,23 @@
 
     .switch {
       position: relative;
+      display: inline-block;
       width: 44px;
       height: 24px;
+      flex-shrink: 0;
     }
+
     .switch input { opacity: 0; width: 0; height: 0; }
+
     .slider {
       position: absolute;
+      cursor: pointer;
       inset: 0;
-      background: #374151;
+      background-color: rgba(255, 255, 255, 0.15);
       border-radius: 24px;
-      transition: 0.3s;
+      transition: 0.2s;
     }
+
     .slider:before {
       position: absolute;
       content: "";
@@ -326,21 +349,27 @@
       width: 18px;
       left: 3px;
       bottom: 3px;
-      background: #fff;
+      background-color: white;
       border-radius: 50%;
-      transition: 0.3s;
+      transition: 0.2s;
     }
-    input:checked + .slider { background: var(--primary); }
-    input:checked + .slider:before { transform: translateX(20px); }
 
-    /* Action Buttons */
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Submit Button */
     .btn-submit {
       width: 100%;
-      padding: 16px;
-      font-size: 16px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      padding: 15px;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
       color: #fff;
+      font-size: 15px;
+      font-weight: 800;
       border: none;
       border-radius: 12px;
       cursor: pointer;
@@ -348,105 +377,173 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
       transition: all 0.2s ease;
+      margin-top: 20px;
     }
+
     .btn-submit:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.45);
+      box-shadow: 0 6px 25px rgba(56, 189, 248, 0.5);
+      transform: translateY(-2px);
     }
+
     .btn-submit:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
 
-    /* Token Settings Banner */
+    /* Token Status Bar */
     .token-bar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      background: rgba(30, 41, 59, 0.5);
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.35);
       border: 1px solid var(--border);
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 12px;
+      border-radius: 12px;
+      padding: 10px 16px;
       margin-bottom: 20px;
+      font-size: 12px;
     }
+
     .btn-token {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--border);
-      color: #e5e7eb;
-      padding: 4px 10px;
-      border-radius: 6px;
+      color: #fff;
       font-size: 11px;
       font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
       cursor: pointer;
+      transition: background 0.2s ease;
     }
 
-    /* Recent Runs / Monitor */
-    .run-item {
-      padding: 14px;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .btn-token:hover {
+      background: rgba(255, 255, 255, 0.15);
     }
+
+    /* Runs List */
+    .run-item {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s ease;
+    }
+
+    .run-item:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .run-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     .run-title {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       color: #fff;
-      margin-bottom: 4px;
     }
+
     .run-meta {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-muted);
+      margin-top: 2px;
     }
+
     .run-status {
       font-size: 11px;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 6px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
     }
-    .status-in_progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .status-completed_success { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .status-completed_failure { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .status-queued { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    .status-in_progress, .status-queued {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-completed_success {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-completed_failure {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .download-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-top: 4px;
+    }
 
     .btn-download-artifact {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      background: var(--primary);
+      gap: 6px;
+      background: var(--success);
       color: #fff;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
       text-decoration: none;
-      margin-top: 6px;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-download-artifact:hover {
+      background: #059669;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
   </style>
 </head>
 <body>
 
-  <!-- PIN Lock Screen -->
+  <!-- 1. PIN Lock Screen Overlay -->
   <div id="lock-screen">
     <div class="lock-card">
-      <div class="lock-icon">🔐</div>
-      <div class="lock-title">Enter Studio Key</div>
-      <div class="lock-desc">Enter your 6-digit access code to open the cloud dashboard.</div>
-      <form id="pin-form" onsubmit="unlockStudio(event)">
-        <input type="password" id="pin-code" class="pin-input" maxlength="8" placeholder="••••••" autofocus required>
-        <button type="submit" class="btn-unlock">Unlock Studio</button>
+      <div class="lock-icon">🔒</div>
+      <div class="lock-title">Motivational Cloud Studio</div>
+      <div class="lock-desc">Enter authorization PIN to access video generation console</div>
+      
+      <form onsubmit="unlockStudio(event)">
+        <input type="password" id="pin-code" class="pin-input" placeholder="••••••" maxlength="6" autofocus required>
+        <button type="submit" class="btn-unlock">Unlock Dashboard</button>
       </form>
     </div>
   </div>
 
-  <div class="container" id="main-app" style="display:none;">
+  <!-- 2. Main Studio Interface -->
+  <div class="container" id="main-app" style="display: none;">
     
     <header>
       <div class="badge-top">
@@ -454,104 +551,78 @@
         ☁️ GitHub Actions Cloud Engine
       </div>
       <h1>Motivational Studio</h1>
-      <p>Cloud Video Repurposer &amp; YouTube Publisher</p>
+      <p>Source Audio Repurposer &amp; Direct MP4 Generator</p>
     </header>
 
     <!-- Token Status Bar -->
     <div class="token-bar">
-      <span>🔑 GitHub API Auth: <strong id="token-status-text" style="color:#ef4444;">Not Set</strong></span>
+      <span>🔑 GitHub Token: <strong id="token-status-text" style="color:#ef4444;">Not Set</strong></span>
       <button class="btn-token" onclick="promptToken()">Configure Token</button>
     </div>
 
     <!-- Main Generator Card -->
     <div class="card">
-      <div class="card-title">⚡ Cloud Repurposing Pipeline</div>
+      <div class="card-title">🎬 Generate Motivational Video</div>
       
       <form id="dispatch-form" onsubmit="triggerWorkflow(event)">
         
         <!-- URL Input -->
         <div class="form-group">
-          <label for="youtube_url">YouTube Video URL</label>
+          <label for="youtube_url">Source YouTube Video URL</label>
           <input type="url" id="youtube_url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." required>
-          <span class="form-hint">Source audio will be downloaded, transcribed, paired with HD visuals, and repurposed.</span>
+          <span class="form-hint">Audio is cleanly extracted, transcribed via Groq Whisper, paired with HD footage, and rendered to MP4.</span>
         </div>
 
         <!-- Speaker Name (Optional) -->
         <div class="form-group">
           <label for="speaker_name">Speaker Name <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
-          <input type="text" id="speaker_name" class="form-input" placeholder="e.g. David Goggins (AI detects if blank)">
-          <span class="form-hint">Burned into speaker attribution badge.</span>
+          <input type="text" id="speaker_name" class="form-input" placeholder="e.g. David Goggins, Steve Jobs (AI auto-detects if blank)">
+          <span class="form-hint">Burned cleanly into the speaker attribution badge.</span>
         </div>
 
         <!-- Aspect Ratio Selection -->
         <div class="form-group">
-          <label>Video Format</label>
+          <label>Video Format &amp; Dimensions</label>
           <div class="aspect-grid">
             <div class="aspect-card active" id="card-landscape" onclick="selectAspect('landscape')">
               <input type="radio" name="aspect" value="landscape" checked>
-              <span class="aspect-label">Landscape 16:9</span>
-              <span class="aspect-desc">Standard YouTube Video</span>
+              <span class="aspect-label">🖥️ 16:9 Landscape</span>
+              <span class="aspect-desc">Standard Full-Screen YouTube Video</span>
             </div>
             <div class="aspect-card" id="card-portrait" onclick="selectAspect('portrait')">
               <input type="radio" name="aspect" value="portrait">
-              <span class="aspect-label">Portrait 9:16</span>
-              <span class="aspect-desc">YouTube Shorts (Vertical)</span>
+              <span class="aspect-label">📱 9:16 Portrait</span>
+              <span class="aspect-desc">YouTube Shorts, Reels &amp; TikTok</span>
             </div>
           </div>
         </div>
 
-        <!-- Mode Toggles -->
+        <!-- Audio-Only Fast Test Mode -->
         <div class="form-group">
-          <label>Pipeline Options</label>
-          
-          <!-- Auto Upload Toggle -->
-          <div class="toggle-row" onclick="document.getElementById('opt_upload').click()">
-            <div class="toggle-info">
-              <div class="toggle-title">🚀 Upload Directly to YouTube</div>
-              <div class="toggle-subtitle">Auto-publishes with altered title, tags, and description.</div>
-            </div>
-            <label class="switch" onclick="event.stopPropagation()">
-              <input type="checkbox" id="opt_upload" checked onchange="toggleUploadSection(this.checked)">
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <!-- Privacy Selector (Visible when upload is enabled) -->
-          <div class="form-group" id="privacy-group" style="margin-top: 10px;">
-            <label for="privacy">Upload Privacy</label>
-            <select id="privacy" class="form-select">
-              <option value="private" selected>🔒 Private (Recommended for preview)</option>
-              <option value="unlisted">🔗 Unlisted</option>
-              <option value="public">🌐 Public</option>
-            </select>
-          </div>
-
-          <!-- Audio-Only Fast Test Mode -->
           <div class="toggle-row" onclick="document.getElementById('opt_audio_only').click()">
             <div class="toggle-info">
               <div class="toggle-title">⚡ Fast Test Mode (Audio &amp; Subtitles Only)</div>
-              <div class="toggle-subtitle">5–10s test: Downloads audio &amp; transcribes without full video render.</div>
+              <div class="toggle-subtitle">Runs in 5–10s: Verifies source audio and transcription without rendering full video.</div>
             </div>
             <label class="switch" onclick="event.stopPropagation()">
               <input type="checkbox" id="opt_audio_only">
               <span class="slider"></span>
             </label>
           </div>
-
         </div>
 
         <!-- Submit Button -->
         <button type="submit" class="btn-submit" id="btn-run">
-          <span>🚀 Launch Cloud Pipeline</span>
+          <span>🚀 Generate Motivational Video</span>
         </button>
 
       </form>
     </div>
 
-    <!-- Live Cloud Runner Status -->
+    <!-- Live Cloud Runner Status & Downloads -->
     <div class="card">
       <div class="card-title">
-        <span>📊 Live Cloud Runs &amp; Downloads</span>
+        <span>📊 Cloud Generation Runs &amp; Downloads</span>
         <button class="btn-token" style="margin-left:auto;" onclick="fetchRuns()">🔄 Refresh</button>
       </div>
       <div id="runs-list">
@@ -625,10 +696,6 @@
       document.getElementById("card-portrait").classList.toggle("active", aspect === "portrait");
     }
 
-    function toggleUploadSection(checked) {
-      document.getElementById("privacy-group").style.display = checked ? "block" : "none";
-    }
-
     // 4. Trigger GitHub Actions Cloud Runner
     async function triggerWorkflow(e) {
       e.preventDefault();
@@ -641,8 +708,6 @@
 
       const url = document.getElementById("youtube_url").value.trim();
       const speaker = document.getElementById("speaker_name").value.trim();
-      const upload = document.getElementById("opt_upload").checked;
-      const privacy = document.getElementById("privacy").value;
       const audioOnly = document.getElementById("opt_audio_only").checked;
 
       const btn = document.getElementById("btn-run");
@@ -663,8 +728,7 @@
               youtube_url: url,
               speaker_name: speaker,
               aspect: selectedAspect,
-              upload: upload,
-              privacy: privacy,
+              upload: false,
               audio_only: audioOnly,
               dry_run: false
             }
@@ -684,11 +748,11 @@
         alert("❌ Network Error: " + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = "<span>🚀 Launch Cloud Pipeline</span>";
+        btn.innerHTML = "<span>🚀 Generate Motivational Video</span>";
       }
     }
 
-    // 5. Fetch Recent Cloud Runs
+    // 5. Fetch Recent Cloud Runs and Output Artifacts
     async function fetchRuns() {
       const token = getToken();
       const list = document.getElementById("runs-list");
@@ -700,40 +764,54 @@
         const data = await res.json();
         
         if (!data.workflow_runs || data.workflow_runs.length === 0) {
-          list.innerHTML = `<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:16px;">No cloud runs found yet. Launch one above!</div>`;
+          list.innerHTML = `<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:16px;">No cloud runs found yet. Click Generate above to start your first video!</div>`;
           return;
         }
 
         list.innerHTML = data.workflow_runs.map(run => {
           let statusClass = `status-${run.status}`;
+          let statusLabel = run.status;
           if (run.status === "completed") {
             statusClass = `status-completed_${run.conclusion}`;
+            statusLabel = run.conclusion === "success" ? "Completed" : (run.conclusion || "Completed");
+          } else if (run.status === "in_progress") {
+            statusLabel = "Rendering...";
           }
 
           const date = new Date(run.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const artifactLink = `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/runs/${run.id}`;
+          const runPageUrl = run.html_url;
 
           return `
             <div class="run-item">
-              <div>
-                <div class="run-title">Run #${run.run_number}: ${run.display_title || 'Motivational Cloud Repurpose'}</div>
-                <div class="run-meta">Started at ${date} • <a href="${run.html_url}" target="_blank" style="color:var(--accent); text-decoration:none;">View Cloud Log ↗</a></div>
-                ${run.conclusion === 'success' ? `<a href="${artifactLink}" target="_blank" class="btn-download-artifact">⬇️ Download Video/Audio Artifacts</a>` : ''}
+              <div class="run-header-row">
+                <div>
+                  <div class="run-title">Run #${run.run_number}: ${run.display_title || 'Motivational Video Generation'}</div>
+                  <div class="run-meta">Started at ${date} • <a href="${runPageUrl}" target="_blank" style="color:var(--accent); text-decoration:none;">View Cloud Log ↗</a></div>
+                </div>
+                <div class="run-status ${statusClass}">${statusLabel.toUpperCase()}</div>
               </div>
-              <div class="run-status ${statusClass}">${(run.conclusion || run.status).toUpperCase()}</div>
+              
+              ${run.conclusion === 'success' ? `
+                <div class="download-box">
+                  <div style="font-size:12px; color:#d1fae5;">🎬 Finished Video is Ready!</div>
+                  <a href="${runPageUrl}" target="_blank" class="btn-download-artifact">
+                    ⬇️ Download Video (ZIP / MP4)
+                  </a>
+                </div>
+              ` : ''}
             </div>
           `;
         }).join('');
 
       } catch (err) {
-        list.innerHTML = `<div style="font-size:12px; color:var(--text-muted); text-align:center;">Configure token to view live run status.</div>`;
+        list.innerHTML = `<div style="font-size:12px; color:var(--text-muted); text-align:center;">Configure your GitHub token to view live run status.</div>`;
       }
     }
 
     function initApp() {
       updateTokenStatus();
       fetchRuns();
-      setInterval(fetchRuns, 15000);
+      setInterval(fetchRuns, 10000);
     }
 
     checkAuth();

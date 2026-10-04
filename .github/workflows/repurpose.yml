@@ -28,7 +28,7 @@ on:
       upload:
         description: 'Upload finished video to YouTube'
         required: false
-        default: true
+        default: false
         type: boolean
       privacy:
         description: 'YouTube upload privacy'
@@ -102,7 +102,7 @@ jobs:
             CMD="$CMD --dry-run"
           fi
           
-          if [ "${{ github.event.inputs.upload }}" = "true" ] && [ "${{ github.event.inputs.dry_run }}" != "true" ] && [ "${{ github.event.inputs.audio_only }}" != "true" ]; then
+          if [ "${{ github.event.inputs.upload }}" = "true" ] && [ -n "${{ secrets.YOUTUBE_REFRESH_TOKEN }}" ] && [ "${{ github.event.inputs.dry_run }}" != "true" ] && [ "${{ github.event.inputs.audio_only }}" != "true" ]; then
             PRIVACY="${{ github.event.inputs.privacy || 'private' }}"
             CMD="$CMD --upload --privacy $PRIVACY"
           fi
