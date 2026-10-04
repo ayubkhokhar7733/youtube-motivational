@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generating Video — YouTube Automation Tool</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="container">
+
+    <header>
+      <div class="logo-badge"><span class="badge-pulse"></span>🎬 AI Video Generator</div>
+      <h1>Generating Your Video</h1>
+      <p>Sit back — this usually takes a few minutes</p>
+    </header>
+
+    <!-- Stage Pipeline -->
+    <div class="glass-card stage-pipeline" id="stage-pipeline">
+      <div class="stage-item" id="stage-script" data-stage="script">
+        <div class="stage-dot"></div>
+        <span>Script</span>
+      </div>
+      <div class="stage-connector"></div>
+      <div class="stage-item" id="stage-media" data-stage="media">
+        <div class="stage-dot"></div>
+        <span>Media</span>
+      </div>
+      <div class="stage-connector"></div>
+      <div class="stage-item" id="stage-voice" data-stage="voice">
+        <div class="stage-dot"></div>
+        <span>Voice</span>
+      </div>
+      <div class="stage-connector"></div>
+      <div class="stage-item" id="stage-render" data-stage="render">
+        <div class="stage-dot"></div>
+        <span>Render</span>
+      </div>
+      <div class="stage-connector"></div>
+      <div class="stage-item" id="stage-done" data-stage="done">
+        <div class="stage-dot"></div>
+        <span>Done</span>
+      </div>
+    </div>
+
+    <!-- AI Time Estimator -->
+    <div class="glass-card ai-estimator-box" id="ai-estimator-box">
+      <div class="ai-header">
+        <span class="ai-icon">🤖</span>
+        <h4>AI Time Predictor</h4>
+      </div>
+      <div class="ai-stats">
+        <div class="stat-item">
+          <span class="stat-label">Estimated Time</span>
+          <span class="stat-value" id="ai-estimate">Calculating...</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Elapsed Time</span>
+          <span class="stat-value" id="ai-elapsed">0s</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">AI Accuracy</span>
+          <span class="stat-value accuracy-badge" id="ai-accuracy">Initializing</span>
+        </div>
+      </div>
+      <div id="video-title-preview" class="video-title-preview" style="display:none"></div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar-wrapper">
+        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+      </div>
+      <div class="progress-percent" id="progress-percent">0%</div>
+    </div>
+
+    <!-- Live Log -->
+    <div class="glass-card log-container" id="log-container">
+      <div class="log-entry log-info">⏳ Starting video generation pipeline...</div>
+    </div>
+
+    <!-- Multi Videos Box (for bulk or single repurposing results) -->
+    <div id="multi-videos-box" style="display:none; margin-bottom: 24px;"></div>
+
+    <!-- Result Actions (hidden until done) -->
+    <div class="result-actions" id="result-actions" style="display: none;">
+      <a href="#" class="btn-primary" id="download-btn">
+        ⬇️ Download Video
+      </a>
+      <a href="/" class="btn-secondary">🔄 Create Another</a>
+    </div>
+
+    <!-- Error (hidden until error) -->
+    <div class="error-container" id="error-container" style="display: none;">
+      <div class="error-box">
+        <h3>Something went wrong</h3>
+        <p id="error-message"></p>
+      </div>
+      <a href="/" class="btn-secondary" style="margin-top:16px">Try Again</a>
+    </div>
+
+  </div>
+
+  <script>
+    const jobId = "{{ job_id }}";
+    const evtSource = new EventSource("/progress/" + jobId);
+
+    const logContainer   = document.getElementById("log-container");
+    const progressBar    = document.getElementById("progress-bar");
+    const progressPct    = document.getElementById("progress-percent");
+    const resultActions  = document.getElementById("result-actions");
+    const errorContainer = document.getElementById("error-container");
+    const errorMessage   = document.getElementById("error-message");
+    const downloadBtn    = document.getElementById("download-btn");
+
+    const STAGES = ["script", "media", "voice", "render", "done"];
+
+    function formatTime(seconds) {
+      if (!seconds || seconds <= 0) return "Calculating...";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return m > 0 ? m + "m " + s + "s" : s + "s";
+    }
+
+    function setStage(stage) {
+      const idx = STAGES.indexOf(stage);
+      STAGES.forEach((s, i) => {
+        const el = document.getElementById("stage-" + s);
+        if (!el) return;
+        el.classList.remove("active", "done-stage");
+        if (i < idx)  el.classList.add("done-stage");
+        if (i === idx) el.classList.add("active");
+      });
+    }
+
+    let lastStage = "";
+    evtSource.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+
+      // Stage indicator
+      if (data.stage && data.stage !== lastStage) {
+        lastStage = data.stage;
+        setStage(data.stage);
+      }
+
+      // Append logs
+      if (data.logs && data.logs.length > 0) {
+        data.logs.forEach(function(log) {
+          const entry = document.createElement("div");
+          entry.className = "log-entry log-info log-slide-in";
+          entry.textContent = log;
+          logContainer.appendChild(entry);
+        });
+        logContainer.scrollTop = logContainer.scrollHeight;
+      }
+
+      // Progress
+      if (data.progress !== undefined) {
+        progressBar.style.width = data.progress + "%";
+        progressPct.textContent = data.progress + "%";
+        if (data.progress > 60) {
+          progressBar.classList.add("pulse");
+        }
+      }
+
+      // AI estimator
+      if (data.predicted_time) {
+        document.getElementById("ai-estimate").textContent = formatTime(data.predicted_time);
+      }
+      if (data.elapsed_time !== undefined) {
+        document.getElementById("ai-elapsed").textContent = formatTime(data.elapsed_time);
+      }
+      if (data.ai_status) {
+        document.getElementById("ai-accuracy").textContent = data.ai_status;
+      }
+
+      // Show script title as soon as we have it
+      if (data.video_title) {
+        const preview = document.getElementById("video-title-preview");
+        preview.style.display = "block";
+        preview.innerHTML = `<span class="title-label">Title:</span> ${data.video_title}`;
+      }
+
+      // Completed
+      if (data.status === "completed") {
+        setStage("done");
+        progressBar.style.width = "100%";
+        progressPct.textContent = "100%";
+        progressBar.classList.remove("pulse");
+        progressBar.classList.add("done");
+
+        const entry = document.createElement("div");
+        entry.className = "log-entry log-success log-slide-in";
+        const dur = data.duration_sec ? ` (${Math.floor(data.duration_sec)}s long)` : "";
+        entry.textContent = "🎉 Video(s) generated successfully!" + dur;
+        logContainer.appendChild(entry);
+        logContainer.scrollTop = logContainer.scrollHeight;
+
+        if (data.completed_videos && data.completed_videos.length > 0) {
+          const multiBox = document.getElementById("multi-videos-box");
+          if (multiBox) {
+            multiBox.style.display = "block";
+            const isAudio = data.is_audio_only || data.completed_videos.some(v => v.is_audio || (v.filename && v.filename.endsWith('.mp3')));
+            multiBox.innerHTML = isAudio 
+              ? '<h3 style="margin-bottom:16px; color:#58a6ff;">🎧 Extracted Source Audio (Pure, No Overlapping Music)</h3>'
+              : '<h3 style="margin-bottom:16px; color:#58a6ff;">🎬 Generated Repurposed Videos</h3>';
+
+            data.completed_videos.forEach(v => {
+              const card = document.createElement("div");
+              card.className = "glass-card";
+              card.style.cssText = "padding:16px 20px; margin-bottom:14px; background:rgba(13,17,23,0.85); border:1px solid rgba(88,166,255,0.25); border-radius:12px;";
+              const ytLink = v.yt_id ? `<a href="https://youtu.be/${v.yt_id}" target="_blank" style="color:#f85149; text-decoration:underline; font-size:13px; margin-right:12px; font-weight:600;">▶️ YouTube</a>` : '';
+              
+              const isAudioItem = v.is_audio || (v.filename && v.filename.endsWith('.mp3'));
+              const audioPlayer = isAudioItem 
+                ? `<div style="margin: 12px 0 8px 0;"><audio controls style="width:100%; border-radius:8px;" src="/stream/${encodeURIComponent(v.filename)}"></audio></div>` 
+                : '';
+              const transcriptNote = v.transcript_snippet 
+                ? `<div style="font-size:12px; color:#c9d1d9; background:rgba(255,255,255,0.04); padding:8px 12px; border-radius:6px; margin-top:8px; font-style:italic;">"${v.transcript_snippet}..."</div>` 
+                : '';
+              const dlLabel = isAudioItem ? '🎧 Download MP3' : '⬇️ Download MP4';
+
+              card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                  <div style="flex:1; min-width:240px;">
+                    <div style="font-weight:700; color:#fff; font-size:15px; margin-bottom:4px;">${v.title}</div>
+                    <div style="font-size:13px; color:#8b949e;">Speaker: <strong style="color:#58a6ff;">${v.speaker}</strong> • Duration: ${v.duration_sec}s</div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    ${ytLink}
+                    <a href="/download/${encodeURIComponent(v.filename)}" class="btn-primary" style="padding:8px 16px; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">${dlLabel}</a>
+                  </div>
+                </div>
+                ${audioPlayer}
+                ${transcriptNote}
+              `;
+              multiBox.appendChild(card);
+            });
+          }
+        }
+
+        if (data.output) {
+          downloadBtn.href = "/download/" + encodeURIComponent(data.output);
+          downloadBtn.innerHTML = (data.output.endsWith('.mp3')) ? "🎧 Download Source Audio (MP3)" : "⬇️ Download Master Video";
+        }
+
+        resultActions.style.display = "flex";
+        evtSource.close();
+      }
+
+      // Error
+      if (data.status === "error") {
+        setStage("error");
+        const entry = document.createElement("div");
+        entry.className = "log-entry log-error log-slide-in";
+        entry.textContent = "Error: " + (data.error || "Unknown error");
+        logContainer.appendChild(entry);
+
+        errorContainer.style.display = "block";
+        errorMessage.textContent = data.error || "An unknown error occurred";
+        evtSource.close();
+      }
+    };
+
+    evtSource.onerror = function() {
+      evtSource.close();
+    };
+  </script>
+</body>
+</html>

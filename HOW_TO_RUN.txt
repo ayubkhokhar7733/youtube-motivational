@@ -1,0 +1,37 @@
+Motivational Video Studio & YouTube Video Repurposer
+======================================================
+
+This is a standalone Python/Flask application that downloads audio from motivational YouTube videos,
+transcribes it with word-level subtitles, pairs it with high-retention visual B-roll, overlays
+a speaker attribution badge (photo/initials + name), preserves pure source audio 100% losslessly,
+and prepares YouTube-ready metadata.
+
+Prerequisites & Technologies:
+- Python 3.10+ (Dependencies installed: yt-dlp, openai, moviepy, edge-tts, Pillow, Flask)
+- Bundled FFmpeg 7.1 with libx264, libass, libmp3lame (ready on PATH)
+- API Keys configured in .env / settings:
+  * GROQ_API_KEY (for Whisper transcription, AI speaker detection, metadata spinning)
+  * PIXABAY_API_KEY & PEXELS_API_KEY (for HD stock footage)
+
+How to Run:
+
+1. Web Dashboard (Recommended):
+   - Run: python main.py  (or double-click run_server.bat)
+   - Open browser at: http://localhost:5000
+   - Go to "🎙️ Repurpose YouTube Video(s)" tab
+   - Choose "Single Video URL" or "Bulk URLs Queue"
+   - Paste your YouTube URL(s)
+   - Fast Audio Test Mode: Check "Extract Audio & Transcribe Only" (runs in 5–10s with in-browser audio player)
+   - Full Video Mode: Uncheck test mode, set speaker details, and click "Download Audio & Repurpose Video"
+
+2. Command Line (CLI):
+   - Fast Audio Extraction Test (5–10s):
+     python pipeline.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only
+   - Single video full pipeline:
+     python pipeline.py --url "https://www.youtube.com/watch?v=VIDEO_ID"
+   - Specifying speaker and avatar:
+     python pipeline.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --speaker-name "David Goggins" --speaker-image "path/to/img.png"
+   - Bulk queue:
+     python pipeline.py --bulk-urls "URL1" "URL2" "URL3" --audio-only
+   - From text file:
+     python pipeline.py --url-file urls.txt

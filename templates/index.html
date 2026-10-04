@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motivational Video Studio — YouTube Automation Tool</title>
+  <meta name="description" content="Repurpose motivational YouTube speeches and audio into engaging, high-retention visual videos with speaker attribution.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    .mode-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      background: rgba(13, 17, 23, 0.6);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .mode-tab {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: #8b949e;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .mode-tab.active {
+      background: rgba(88, 166, 255, 0.15);
+      color: #58a6ff;
+      border: 1px solid rgba(88, 166, 255, 0.35);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+    .sub-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .sub-toggle-btn {
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #c9d1d9;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .sub-toggle-btn.active {
+      background: rgba(46, 160, 67, 0.2);
+      border-color: #3fb950;
+      color: #3fb950;
+    }
+    .form-section {
+      background: rgba(13, 17, 23, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #58a6ff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+    .form-row .form-group {
+      flex: 1;
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox-container input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #58a6ff;
+      cursor: pointer;
+    }
+    .checkbox-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e6edf3;
+    }
+    .select-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(13, 17, 23, 0.8);
+      border: 1px solid rgba(48, 54, 61, 0.8);
+      border-radius: 10px;
+      color: #e6edf3;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .select-input:focus {
+      border-color: #58a6ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <div class="container">
+    <header>
+      <div class="logo-badge">
+        <span class="badge-pulse"></span>
+        🔥 Motivational Video Studio
+        <span id="version-badge" style="
+          margin-left:10px;
+          font-size:11px;
+          font-weight:700;
+          background:linear-gradient(135deg,#7c3aed,#2563eb);
+          color:#fff;
+          padding:2px 8px;
+          border-radius:20px;
+          letter-spacing:0.05em;
+          vertical-align:middle;
+        ">v?</span>
+      </div>
+      <h1>YouTube Video Repurposer</h1>
+      <p>Transform motivational speeches into high-engagement visual videos with speaker attribution &amp; subtitles</p>
+    </header>
+
+    <!-- API Status Badges -->
+    <div class="config-status">
+      <span class="badge {{ 'badge-ok' if config.groq else 'badge-warn' }}">
+        <span class="badge-dot"></span>
+        Groq {{ 'Connected' if config.groq else 'Not Set' }}
+      </span>
+      <span class="badge {{ 'badge-ok' if config.pixabay else 'badge-warn' }}">
+        <span class="badge-dot"></span>
+        Pixabay {{ 'Connected' if config.pixabay else 'Not Set' }}
+      </span>
+      <span class="badge {{ 'badge-ok' if config.pexels else 'badge-warn' }}">
+        <span class="badge-dot"></span>
+        Pexels {{ 'Connected' if config.pexels else 'Not Set' }}
+      </span>
+    </div>
+
+    <!-- Motivational Repurposing Form -->
+    <div class="glass-card generate-form" id="panel-repurpose">
+      <form action="/repurpose" method="POST" enctype="multipart/form-data" id="repurpose-form">
+        
+        <!-- URL Input Mode Switch -->
+        <div class="sub-toggle">
+          <button type="button" class="sub-toggle-btn active" id="btn-single-url" onclick="setSubMode('single')">Single Video URL</button>
+          <button type="button" class="sub-toggle-btn" id="btn-bulk-urls" onclick="setSubMode('bulk')">Bulk URLs Queue</button>
+        </div>
+
+        <!-- Single URL Field -->
+        <div class="form-group" id="group-single-url">
+          <label for="url">YouTube Video URL</label>
+          <input type="url" id="url" name="url"
+                 placeholder="https://www.youtube.com/watch?v=..."
+                 class="form-input" autocomplete="off">
+          <span class="key-hint">💡 Source audio will be downloaded &amp; transcribed with word-level subtitles. Output video will match source duration.</span>
+        </div>
+
+        <!-- Bulk URLs Field (Hidden by default) -->
+        <div class="form-group" id="group-bulk-urls" style="display:none;">
+          <label for="bulk_urls">Bulk YouTube URLs (One per line)</label>
+          <textarea id="bulk_urls" name="bulk_urls" rows="4"
+                    placeholder="https://www.youtube.com/watch?v=abc123&#10;https://www.youtube.com/watch?v=xyz789&#10;https://www.youtube.com/watch?v=def456"
+                    class="form-input" style="resize:vertical;"></textarea>
+          <span class="key-hint">💡 Paste multiple URLs. Each video will be downloaded, transcribed, and repurposed in an automated batch queue.</span>
+        </div>
+
+        <!-- Speaker Attribution Section -->
+        <div class="form-section">
+          <div class="section-title">👤 Speaker Attribution Overlay</div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="speaker_name">Speaker Name <span style="color:#8b949e;font-weight:400">(optional)</span></label>
+              <input type="text" id="speaker_name" name="speaker_name"
+                     placeholder="e.g. David Goggins (AI detects if blank)"
+                     class="form-input" autocomplete="off">
+              <span class="key-hint">Leave blank for Groq AI to auto-detect speaker from video.</span>
+            </div>
+
+            <div class="form-group">
+              <label for="speaker_image">Speaker Photo / Avatar <span style="color:#8b949e;font-weight:400">(optional)</span></label>
+              <div class="file-input-wrapper">
+                <input type="file" id="speaker_image" name="speaker_image" accept="image/png,image/jpeg,image/webp" class="file-input">
+                <label for="speaker_image" class="file-label">📷 Choose Photo</label>
+                <span class="file-name" id="speaker-file-name">Auto avatar</span>
+              </div>
+              <span class="key-hint">Burned on screen with gold pill badge.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fast Test Mode: Extract Audio Only -->
+        <div class="form-section" style="border: 1px solid rgba(88, 166, 255, 0.35); background: rgba(88, 166, 255, 0.08);">
+          <div class="section-title" style="color: #58a6ff;">⚡ Fast Test Mode</div>
+          <label class="checkbox-container" style="margin-bottom: 0;">
+            <input type="checkbox" id="audio_only" name="audio_only" value="1" checked onchange="toggleTestMode(this.checked)">
+            <div>
+              <span class="checkbox-label" style="color: #e6edf3;">Extract Audio &amp; Transcribe Only (Skip Video Rendering)</span>
+              <div style="font-size: 12px; color: #8b949e; margin-top: 4px; line-height: 1.4;">
+                ⚡ Fast 5–10s test: Downloads source audio, transcribes speech, and prepares audio player for instant verification.
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <!-- YouTube Publishing Section -->
+        <div class="form-section" id="yt-publish-section">
+          <div class="section-title">🚀 YouTube Publishing (Optional)</div>
+          
+          <label class="checkbox-container">
+            <input type="checkbox" id="upload_youtube" name="upload_youtube" value="1" onchange="togglePrivacy(this.checked)">
+            <span class="checkbox-label">Upload automatically to YouTube upon completion</span>
+          </label>
+
+          <div class="form-group" id="privacy-group" style="display:none;">
+            <label for="privacy">Upload Privacy</label>
+            <select id="privacy" name="privacy" class="select-input">
+              <option value="private" selected>🔒 Private (Recommended for preview)</option>
+              <option value="unlisted">🔗 Unlisted</option>
+              <option value="public">🌐 Public</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-generate" id="repurpose-btn">
+          <span id="repurpose-btn-icon">🎧</span>
+          <span id="repurpose-btn-text">Test Audio Extraction (5-10s)</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="text-center" style="margin-bottom: 36px;">
+      <a href="/settings" class="btn-secondary">⚙️ Settings &amp; API Keys</a>
+    </div>
+
+    <!-- How it works -->
+    <div class="glass-card info-section">
+      <h3>How Motivational Repurposing Works</h3>
+      <div class="steps">
+        <div class="step">
+          <span class="step-icon">1</span>
+          <div>
+            <strong>Audio &amp; Metadata Download</strong>
+            <span>Extracts high-fidelity audio, raw titles, descriptions, and tags via yt-dlp.</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-icon">2</span>
+          <div>
+            <strong>Groq Whisper Transcription</strong>
+            <span>Transcribes full speech with millisecond word timestamps for burned-in subtitles.</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-icon">3</span>
+          <div>
+            <strong>Speaker Attribution Badge</strong>
+            <span>Generates an on-screen circular speaker avatar and gold attribution badge so viewers know who is talking.</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-icon">4</span>
+          <div>
+            <strong>Contextual B-Roll Footage</strong>
+            <span>Segments speech into dynamic visual scenes and fetches matching HD clips from Pexels &amp; Pixabay.</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-icon">5</span>
+          <div>
+            <strong>Pristine Source Audio Track</strong>
+            <span>Preserves the original professional audio mix (speech + built-in motivational soundtrack) exactly as produced.</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-icon">6</span>
+          <div>
+            <strong>Spun Metadata &amp; High-CTR Thumbnail</strong>
+            <span>Re-engineers titles, descriptions, and tags with Groq LLM, creating a YouTube-ready master.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Generations -->
+    <div class="glass-card" id="history-section" style="display:none">
+      <h3 style="margin-bottom:16px">📊 Recent Generations</h3>
+      <div id="history-list" class="history-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // Sub-mode toggle: Single URL vs Bulk URLs
+    function setSubMode(sub) {
+      const btnSingle   = document.getElementById('btn-single-url');
+      const btnBulk     = document.getElementById('btn-bulk-urls');
+      const groupSingle = document.getElementById('group-single-url');
+      const groupBulk   = document.getElementById('group-bulk-urls');
+      const urlInput    = document.getElementById('url');
+
+      if (sub === 'single') {
+        btnSingle.classList.add('active');
+        btnBulk.classList.remove('active');
+        groupSingle.style.display = 'block';
+        groupBulk.style.display   = 'none';
+        urlInput.setAttribute('required', 'required');
+      } else {
+        btnSingle.classList.remove('active');
+        btnBulk.classList.add('active');
+        groupSingle.style.display = 'none';
+        groupBulk.style.display   = 'block';
+        urlInput.removeAttribute('required');
+      }
+    }
+
+    function togglePrivacy(checked) {
+      const grp = document.getElementById('privacy-group');
+      grp.style.display = checked ? 'block' : 'none';
+    }
+
+    function toggleTestMode(isAudioOnly) {
+      const btnTxt = document.getElementById('repurpose-btn-text');
+      const btnIco = document.getElementById('repurpose-btn-icon');
+      const ytSec  = document.getElementById('yt-publish-section');
+      if (isAudioOnly) {
+        if (btnTxt) btnTxt.textContent = 'Test Audio Extraction (5-10s)';
+        if (btnIco) btnIco.textContent = '🎧';
+        if (ytSec)  ytSec.style.opacity = '0.4';
+      } else {
+        if (btnTxt) btnTxt.textContent = 'Download Audio & Repurpose Video';
+        if (btnIco) btnIco.textContent = '🚀';
+        if (ytSec)  ytSec.style.opacity = '1';
+      }
+    }
+
+    // File name displays
+    const spInput = document.getElementById('speaker_image');
+    if (spInput) {
+      spInput.addEventListener('change', function(e) {
+        const name = e.target.files[0] ? e.target.files[0].name : 'Auto avatar';
+        document.getElementById('speaker-file-name').textContent = name;
+      });
+    }
+
+    // Form submit state
+    const repForm = document.getElementById('repurpose-form');
+    if (repForm) {
+      repForm.addEventListener('submit', function() {
+        const btn = document.getElementById('repurpose-btn');
+        const ico = document.getElementById('repurpose-btn-icon');
+        const txt = document.getElementById('repurpose-btn-text');
+        btn.disabled = true;
+        btn.classList.add('loading');
+        ico.textContent = '⏳';
+        txt.textContent = 'Starting Repurposing Pipeline...';
+      });
+    }
+
+    // Load recent history
+    async function loadHistory() {
+      try {
+        const res  = await fetch('/api/history');
+        const data = await res.json();
+        if (!data.length) return;
+
+        const section = document.getElementById('history-section');
+        const list    = document.getElementById('history-list');
+        section.style.display = 'block';
+
+        data.forEach(run => {
+          const date = new Date(run.timestamp * 1000);
+          const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
+                          ' ' + date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+          const mins = Math.floor(run.total_time_seconds / 60);
+          const secs = Math.floor(run.total_time_seconds % 60);
+          const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+          const item = document.createElement('div');
+          item.className = 'history-item';
+          item.innerHTML = `
+            <div class="history-meta">
+              <span class="history-aspect">${run.aspect_ratio || 'landscape'}</span>
+              <span class="history-dur">${run.target_duration || 60}s video</span>
+              <span class="history-scenes">${run.scene_count || '?'} scenes</span>
+            </div>
+            <div class="history-time">⏱ ${timeStr}</div>
+            <div class="history-date">${dateStr}</div>
+          `;
+          list.appendChild(item);
+        });
+      } catch (e) { /* ignore */ }
+    }
+    loadHistory();
+
+    // Version badge
+    fetch('/api/version')
+      .then(r => r.json())
+      .then(d => {
+        const el = document.getElementById('version-badge');
+        if (el && d.version) el.textContent = 'v' + d.version;
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>

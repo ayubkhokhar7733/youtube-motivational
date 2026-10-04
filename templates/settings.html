@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — YouTube Automation Tool</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Settings</h1>
+      <p>Configure API keys, video format, voice, and style options</p>
+    </header>
+
+    <!-- ── API Keys ── -->
+    <div class="card">
+      <h2 class="card-title">🔑 API Keys</h2>
+      <p class="card-desc">Keys are saved to <code>user_settings.json</code>. The <code>.env</code> file is used as a fallback.</p>
+
+      <form id="settings-form">
+        <div class="form-group">
+          <label for="groq_api_key">
+            Groq API Key
+            <span class="status-dot" id="groq-status"></span>
+          </label>
+          <div class="key-input-wrapper">
+            <input type="password" id="groq_api_key" class="form-input" placeholder="gsk_..." autocomplete="off">
+            <button type="button" class="toggle-vis" data-target="groq_api_key">Show</button>
+          </div>
+          <span class="key-hint" id="groq-hint"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="pixabay_api_key">
+            Pixabay API Key
+            <span class="status-dot" id="pixabay-status"></span>
+          </label>
+          <div class="key-input-wrapper">
+            <input type="password" id="pixabay_api_key" class="form-input" placeholder="your_pixabay_key" autocomplete="off">
+            <button type="button" class="toggle-vis" data-target="pixabay_api_key">Show</button>
+          </div>
+          <span class="key-hint" id="pixabay-hint"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="pexels_api_key">
+            Pexels API Key
+            <span class="status-dot" id="pexels-status"></span>
+          </label>
+          <div class="key-input-wrapper">
+            <input type="password" id="pexels_api_key" class="form-input" placeholder="your_pexels_key" autocomplete="off">
+            <button type="button" class="toggle-vis" data-target="pexels_api_key">Show</button>
+          </div>
+          <span class="key-hint" id="pexels-hint"></span>
+        </div>
+
+        <div id="settings-message" class="msg-box" style="display: none;"></div>
+        <button type="submit" class="btn-primary" id="save-settings-btn">Save API Keys</button>
+      </form>
+    </div>
+
+    <!-- ── Video Format ── -->
+    <div class="card">
+      <h2 class="card-title">📐 Video Format</h2>
+      <p class="card-desc">Controls the output video dimensions. Applied on the next generation.</p>
+
+      <div class="form-group">
+        <label>Aspect Ratio</label>
+        <div class="aspect-options" id="aspect-options">
+          <label class="aspect-card" data-value="landscape">
+            <input type="radio" name="aspect_ratio" value="landscape" checked>
+            <span class="aspect-icon">▬</span>
+            <span class="aspect-label">Landscape 16:9</span>
+            <span class="aspect-res" id="res-landscape">1920×1080</span>
+          </label>
+          <label class="aspect-card" data-value="portrait">
+            <input type="radio" name="aspect_ratio" value="portrait">
+            <span class="aspect-icon">▮</span>
+            <span class="aspect-label">Portrait 9:16</span>
+            <span class="aspect-res" id="res-portrait">1080×1920</span>
+          </label>
+          <label class="aspect-card" data-value="square">
+            <input type="radio" name="aspect_ratio" value="square">
+            <span class="aspect-icon">■</span>
+            <span class="aspect-label">Square 1:1</span>
+            <span class="aspect-res" id="res-square">1080×1080</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="save-video-btn">Save Aspect Ratio</button>
+    </div>
+
+    <!-- ── Media Preferences ── -->
+    <div class="card">
+      <h2 class="card-title">🎬 Media Preferences</h2>
+      <p class="card-desc">Control what type of media is used for each scene background.</p>
+
+      <div class="form-group">
+        <label>Media Source</label>
+        <div class="aspect-options">
+          <label class="aspect-card" data-value="video_first">
+            <input type="radio" name="media_preference" value="video_first" checked>
+            <span class="aspect-icon">🎥</span>
+            <span class="aspect-label">Video First</span>
+            <span class="aspect-res">Clips → Images</span>
+          </label>
+          <label class="aspect-card" data-value="image_only">
+            <input type="radio" name="media_preference" value="image_only">
+            <span class="aspect-icon">🖼️</span>
+            <span class="aspect-label">Images Only</span>
+            <span class="aspect-res">Faster generation</span>
+          </label>
+          <label class="aspect-card" data-value="video_only">
+            <input type="radio" name="media_preference" value="video_only">
+            <span class="aspect-icon">📹</span>
+            <span class="aspect-label">Videos Only</span>
+            <span class="aspect-res">Clips or fallback</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ken Burns Zoom Effect</label>
+        <div class="toggle-row">
+          <label class="toggle-switch">
+            <input type="checkbox" id="enable_zoom" checked>
+            <span class="toggle-track"></span>
+          </label>
+          <span class="toggle-label" id="zoom-label">Enabled — slow zoom-in on still images</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="save-media-btn">Save Media Settings</button>
+    </div>
+
+    <!-- ── Subtitle Style ── -->
+    <div class="card">
+      <h2 class="card-title">📝 Subtitle Style</h2>
+      <p class="card-desc">Choose the subtitle colour shown on the generated video.</p>
+
+      <div class="form-group">
+        <label>Subtitle Colour</label>
+        <div class="color-options">
+          <label class="color-card" data-value="white">
+            <input type="radio" name="subtitle_color" value="white" checked>
+            <span class="color-swatch" style="background:#ffffff;border-color:#555;"></span>
+            <span>White</span>
+          </label>
+          <label class="color-card" data-value="yellow">
+            <input type="radio" name="subtitle_color" value="yellow">
+            <span class="color-swatch" style="background:#FFDC32;"></span>
+            <span>Yellow</span>
+          </label>
+          <label class="color-card" data-value="cyan">
+            <input type="radio" name="subtitle_color" value="cyan">
+            <span class="color-swatch" style="background:#00E5FF;"></span>
+            <span>Cyan</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="save-subtitle-btn">Save Subtitle Settings</button>
+    </div>
+
+    <!-- ── Disk Space Management ── -->
+    <div class="card">
+      <h2 class="card-title">🧹 Disk Space Management</h2>
+      <p class="card-desc">Free up space by deleting temporary files and generated videos.</p>
+      
+      <div class="usage-grid">
+        <div class="usage-item">
+          <span class="usage-label">Temporary Cache (temp/)</span>
+          <span class="usage-value" id="space-temp">0.0 MB</span>
+        </div>
+        <div class="usage-item">
+          <span class="usage-label">Generated Videos (output/)</span>
+          <span class="usage-value" id="space-output">0.0 MB</span>
+        </div>
+      </div>
+      
+      <div style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn-secondary" id="clear-temp-btn" style="border-color: #ff6b6b; color: #ff6b6b;">🧹 Clear Temp Cache</button>
+        <button type="button" class="btn-secondary" id="clear-output-btn" style="border-color: #ff6b6b; color: #ff6b6b;">🎥 Delete Generated Videos</button>
+      </div>
+    </div>
+
+    <!-- ── Usage Stats ── -->
+    <div class="card">
+      <h2 class="card-title">📊 Usage Statistics</h2>
+      <p class="card-desc">API call counts since the app started.</p>
+      <div class="usage-grid">
+        <div class="usage-item">
+          <span class="usage-label">Groq Requests</span>
+          <span class="usage-value" id="usage-groq">0</span>
+        </div>
+        <div class="usage-item">
+          <span class="usage-label">Pixabay Requests</span>
+          <span class="usage-value" id="usage-pixabay">0</span>
+        </div>
+        <div class="usage-item">
+          <span class="usage-label">Pexels Requests</span>
+          <span class="usage-value" id="usage-pexels">0</span>
+        </div>
+        <div class="usage-item">
+          <span class="usage-label">Videos Generated</span>
+          <span class="usage-value" id="usage-videos">0</span>
+        </div>
+      </div>
+      <button type="button" class="btn-secondary" id="refresh-usage-btn" style="margin-top: 16px;">↻ Refresh</button>
+    </div>
+
+    <div class="nav-footer">
+      <a href="/" class="btn-secondary">← Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    function loadSettings() {
+      fetch("/api/settings").then(r => r.json()).then(data => {
+        // API keys
+        document.getElementById("groq_api_key").placeholder    = data.groq_api_key    || "Not set";
+        document.getElementById("pixabay_api_key").placeholder = data.pixabay_api_key || "Not set";
+        document.getElementById("pexels_api_key").placeholder  = data.pexels_api_key  || "Not set";
+        document.getElementById("groq-hint").textContent    = data.groq_api_key    ? "Current: " + data.groq_api_key    : "Not configured";
+        document.getElementById("pixabay-hint").textContent = data.pixabay_api_key ? "Current: " + data.pixabay_api_key : "Not configured";
+        document.getElementById("pexels-hint").textContent  = data.pexels_api_key  ? "Current: " + data.pexels_api_key  : "Not configured";
+        document.getElementById("groq-status").className    = "status-dot " + (data.groq_connected    ? "dot-ok" : "dot-warn");
+        document.getElementById("pixabay-status").className = "status-dot " + (data.pixabay_connected ? "dot-ok" : "dot-warn");
+        document.getElementById("pexels-status").className  = "status-dot " + (data.pexels_connected  ? "dot-ok" : "dot-warn");
+
+        // Video format (Aspect Ratio)
+        document.querySelectorAll('input[name="aspect_ratio"]').forEach(el => el.checked = el.value === data.aspect_ratio);
+
+        // Media prefs
+        document.querySelectorAll('input[name="media_preference"]').forEach(el => el.checked = el.value === (data.media_preference || "video_first"));
+        document.getElementById("enable_zoom").checked = data.enable_zoom !== false;
+        updateZoomLabel();
+
+        // Subtitle colour
+        document.querySelectorAll('input[name="subtitle_color"]').forEach(el => el.checked = el.value === (data.subtitle_color || "white"));
+      });
+    }
+
+    function loadUsage() {
+      fetch("/api/usage").then(r => r.json()).then(data => {
+        document.getElementById("usage-groq").textContent    = data.groq_requests;
+        document.getElementById("usage-pixabay").textContent = data.pixabay_requests;
+        document.getElementById("usage-pexels").textContent  = data.pexels_requests;
+        document.getElementById("usage-videos").textContent  = data.videos_generated;
+      });
+    }
+
+    function updateZoomLabel() {
+      const chk = document.getElementById("enable_zoom");
+      document.getElementById("zoom-label").textContent = chk.checked
+        ? "Enabled — slow zoom-in on still images"
+        : "Disabled — static images only";
+    }
+
+    function saveSettings(payload, btnId, originalText) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+      return fetch("/api/settings", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload),
+      })
+      .then(r => r.json())
+      .then(data => {
+        btn.textContent = "✓ Saved!";
+        loadSettings();
+        setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 1800);
+      })
+      .catch(() => {
+        btn.textContent = "Error!";
+        setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+      });
+    }
+
+    // ── API Keys form ──
+    document.getElementById("settings-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const body = {};
+      const groq    = document.getElementById("groq_api_key").value.trim();
+      const pixabay = document.getElementById("pixabay_api_key").value.trim();
+      const pexels  = document.getElementById("pexels_api_key").value.trim();
+      if (groq)    body.groq_api_key    = groq;
+      if (pixabay) body.pixabay_api_key = pixabay;
+      if (pexels)  body.pexels_api_key  = pexels;
+      const btn = document.getElementById("save-settings-btn");
+      btn.disabled = true; btn.textContent = "Saving...";
+      fetch("/api/settings", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)})
+        .then(r => r.json())
+        .then(data => {
+          const box = document.getElementById("settings-message");
+          box.style.display = "block";
+          box.className = "msg-box msg-ok";
+          box.textContent = data.message || "Saved!";
+          ["groq_api_key","pixabay_api_key","pexels_api_key"].forEach(id => document.getElementById(id).value = "");
+          loadSettings();
+        })
+        .catch(err => {
+          const box = document.getElementById("settings-message");
+          box.style.display = "block";
+          box.className = "msg-box msg-error";
+          box.textContent = "Error: " + err.message;
+        })
+        .finally(() => { btn.disabled = false; btn.textContent = "Save API Keys"; });
+    });
+
+    // ── Video Format ──
+    document.getElementById("save-video-btn").addEventListener("click", function() {
+      const aspect = document.querySelector('input[name="aspect_ratio"]:checked').value;
+      saveSettings({aspect_ratio: aspect}, "save-video-btn", "Save Aspect Ratio");
+    });
+
+    // ── Media Prefs ──
+    document.getElementById("enable_zoom").addEventListener("change", updateZoomLabel);
+    document.getElementById("save-media-btn").addEventListener("click", function() {
+      const pref = document.querySelector('input[name="media_preference"]:checked').value;
+      const zoom  = document.getElementById("enable_zoom").checked;
+      saveSettings({media_preference: pref, enable_zoom: zoom}, "save-media-btn", "Save Media Settings");
+    });
+
+    // ── Subtitle ──
+    document.getElementById("save-subtitle-btn").addEventListener("click", function() {
+      const color = document.querySelector('input[name="subtitle_color"]:checked').value;
+      saveSettings({subtitle_color: color}, "save-subtitle-btn", "Save Subtitle Settings");
+    });
+
+    // ── Toggle visibility ──
+    document.querySelectorAll(".toggle-vis").forEach(btn => {
+      btn.addEventListener("click", function() {
+        const target = document.getElementById(this.dataset.target);
+        target.type = target.type === "password" ? "text" : "password";
+        this.textContent = target.type === "password" ? "Show" : "Hide";
+      });
+    });
+
+    // ── Refresh usage ──
+    document.getElementById("refresh-usage-btn").addEventListener("click", loadUsage);
+
+    // ── Disk Space Management ──
+    function loadDiskUsage() {
+      fetch("/api/disk_usage").then(r => r.json()).then(data => {
+        document.getElementById("space-temp").textContent = data.temp_mb + " MB";
+        document.getElementById("space-output").textContent = data.output_mb + " MB";
+      }).catch(err => console.error("Failed to load disk usage", err));
+    }
+
+    function clearCache(type, btnId, originalText) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = true;
+      btn.textContent = "Clearing...";
+      fetch("/api/clear_cache", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({type: type})
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          btn.textContent = "✓ Cleared!";
+          loadDiskUsage();
+        } else {
+          btn.textContent = "Error!";
+        }
+        setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+      })
+      .catch(() => {
+        btn.textContent = "Error!";
+        setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+      });
+    }
+
+    document.getElementById("clear-temp-btn").addEventListener("click", () => clearCache("temp", "clear-temp-btn", "🧹 Clear Temp Cache"));
+    document.getElementById("clear-output-btn").addEventListener("click", () => clearCache("output", "clear-output-btn", "🎥 Delete Generated Videos"));
+
+    // Init
+    loadSettings();
+    loadUsage();
+    loadDiskUsage();
+  </script>
+</body>
+</html>
