@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motivational Video Cloud Studio — Web Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: #3b82f6;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.18) 0%, rgba(56, 189, 248, 0.05) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      z-index: 1;
+    }
+
+    /* Lock Screen Overlay */
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.95);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .lock-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .lock-icon {
+      font-size: 42px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    .lock-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .lock-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .pin-input {
+      width: 100%;
+      padding: 14px;
+      font-size: 20px;
+      letter-spacing: 0.3em;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #fff;
+      outline: none;
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .pin-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    .btn-unlock {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-unlock:hover { opacity: 0.9; }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: var(--accent);
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .badge-pulse {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #fff;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 5px;
+      display: block;
+    }
+
+    /* Aspect Ratio Selector Cards */
+    .aspect-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .aspect-card {
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .aspect-card input {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .aspect-card.active {
+      background: rgba(37, 99, 235, 0.18);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+    }
+
+    .aspect-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .aspect-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Toggle Switches */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
+    .toggle-info {
+      flex: 1;
+      margin-right: 12px;
+    }
+
+    .toggle-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .toggle-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #374151;
+      border-radius: 24px;
+      transition: 0.3s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    input:checked + .slider { background: var(--primary); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Action Buttons */
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+      transition: all 0.2s ease;
+    }
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.45);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Token Settings Banner */
+    .token-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+    .btn-token {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: #e5e7eb;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Recent Runs / Monitor */
+    .run-item {
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .run-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .run-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .run-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .status-in_progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-completed_success { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-completed_failure { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status-queued { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    .btn-download-artifact {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--primary);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PIN Lock Screen -->
+  <div id="lock-screen">
+    <div class="lock-card">
+      <div class="lock-icon">🔐</div>
+      <div class="lock-title">Enter Studio Key</div>
+      <div class="lock-desc">Enter your 6-digit access code to open the cloud dashboard.</div>
+      <form id="pin-form" onsubmit="unlockStudio(event)">
+        <input type="password" id="pin-code" class="pin-input" maxlength="8" placeholder="••••••" autofocus required>
+        <button type="submit" class="btn-unlock">Unlock Studio</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="container" id="main-app" style="display:none;">
+    
+    <header>
+      <div class="badge-top">
+        <span class="badge-pulse"></span>
+        ☁️ GitHub Actions Cloud Engine
+      </div>
+      <h1>Motivational Studio</h1>
+      <p>Cloud Video Repurposer &amp; YouTube Publisher</p>
+    </header>
+
+    <!-- Token Status Bar -->
+    <div class="token-bar">
+      <span>🔑 GitHub API Auth: <strong id="token-status-text" style="color:#ef4444;">Not Set</strong></span>
+      <button class="btn-token" onclick="promptToken()">Configure Token</button>
+    </div>
+
+    <!-- Main Generator Card -->
+    <div class="card">
+      <div class="card-title">⚡ Cloud Repurposing Pipeline</div>
+      
+      <form id="dispatch-form" onsubmit="triggerWorkflow(event)">
+        
+        <!-- URL Input -->
+        <div class="form-group">
+          <label for="youtube_url">YouTube Video URL</label>
+          <input type="url" id="youtube_url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." required>
+          <span class="form-hint">Source audio will be downloaded, transcribed, paired with HD visuals, and repurposed.</span>
+        </div>
+
+        <!-- Speaker Name (Optional) -->
+        <div class="form-group">
+          <label for="speaker_name">Speaker Name <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+          <input type="text" id="speaker_name" class="form-input" placeholder="e.g. David Goggins (AI detects if blank)">
+          <span class="form-hint">Burned into speaker attribution badge.</span>
+        </div>
+
+        <!-- Aspect Ratio Selection -->
+        <div class="form-group">
+          <label>Video Format</label>
+          <div class="aspect-grid">
+            <div class="aspect-card active" id="card-landscape" onclick="selectAspect('landscape')">
+              <input type="radio" name="aspect" value="landscape" checked>
+              <span class="aspect-label">Landscape 16:9</span>
+              <span class="aspect-desc">Standard YouTube Video</span>
+            </div>
+            <div class="aspect-card" id="card-portrait" onclick="selectAspect('portrait')">
+              <input type="radio" name="aspect" value="portrait">
+              <span class="aspect-label">Portrait 9:16</span>
+              <span class="aspect-desc">YouTube Shorts (Vertical)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Toggles -->
+        <div class="form-group">
+          <label>Pipeline Options</label>
+          
+          <!-- Auto Upload Toggle -->
+          <div class="toggle-row" onclick="document.getElementById('opt_upload').click()">
+            <div class="toggle-info">
+              <div class="toggle-title">🚀 Upload Directly to YouTube</div>
+              <div class="toggle-subtitle">Auto-publishes with altered title, tags, and description.</div>
+            </div>
+            <label class="switch" onclick="event.stopPropagation()">
+              <input type="checkbox" id="opt_upload" checked onchange="toggleUploadSection(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Privacy Selector (Visible when upload is enabled) -->
+          <div class="form-group" id="privacy-group" style="margin-top: 10px;">
+            <label for="privacy">Upload Privacy</label>
+            <select id="privacy" class="form-select">
+              <option value="private" selected>🔒 Private (Recommended for preview)</option>
+              <option value="unlisted">🔗 Unlisted</option>
+              <option value="public">🌐 Public</option>
+            </select>
+          </div>
+
+          <!-- Audio-Only Fast Test Mode -->
+          <div class="toggle-row" onclick="document.getElementById('opt_audio_only').click()">
+            <div class="toggle-info">
+              <div class="toggle-title">⚡ Fast Test Mode (Audio &amp; Subtitles Only)</div>
+              <div class="toggle-subtitle">5–10s test: Downloads audio &amp; transcribes without full video render.</div>
+            </div>
+            <label class="switch" onclick="event.stopPropagation()">
+              <input type="checkbox" id="opt_audio_only">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-submit" id="btn-run">
+          <span>🚀 Launch Cloud Pipeline</span>
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Live Cloud Runner Status -->
+    <div class="card">
+      <div class="card-title">
+        <span>📊 Live Cloud Runs &amp; Downloads</span>
+        <button class="btn-token" style="margin-left:auto;" onclick="fetchRuns()">🔄 Refresh</button>
+      </div>
+      <div id="runs-list">
+        <div style="font-size:13px; color:var(--text-muted); text-align:center; padding:16px;">Loading cloud runs...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const PASSKEY = "004200";
+    const REPO_OWNER = "ayubkhokhar7733";
+    const REPO_NAME = "youtube-motivational";
+    const WORKFLOW_FILE = "repurpose.yml";
+
+    // 1. PIN Lock Verification
+    function checkAuth() {
+      if (sessionStorage.getItem("studio_auth") === PASSKEY) {
+        document.getElementById("lock-screen").style.display = "none";
+        document.getElementById("main-app").style.display = "block";
+        initApp();
+      }
+    }
+
+    function unlockStudio(e) {
+      e.preventDefault();
+      const pin = document.getElementById("pin-code").value.trim();
+      if (pin === PASSKEY) {
+        sessionStorage.setItem("studio_auth", PASSKEY);
+        document.getElementById("lock-screen").style.display = "none";
+        document.getElementById("main-app").style.display = "block";
+        initApp();
+      } else {
+        alert("❌ Incorrect key. Access denied.");
+        document.getElementById("pin-code").value = "";
+      }
+    }
+
+    // 2. Token Handling
+    function getToken() {
+      return localStorage.getItem("gh_token") || "";
+    }
+
+    function promptToken() {
+      const current = getToken();
+      const token = prompt("Enter your GitHub Personal Access Token (classic with 'repo' & 'workflow' scope, or fine-grained token with Actions write):", current);
+      if (token !== null) {
+        localStorage.setItem("gh_token", token.trim());
+        updateTokenStatus();
+        fetchRuns();
+      }
+    }
+
+    function updateTokenStatus() {
+      const token = getToken();
+      const el = document.getElementById("token-status-text");
+      if (token) {
+        el.textContent = "Connected (••••" + token.slice(-4) + ")";
+        el.style.color = "var(--success)";
+      } else {
+        el.textContent = "Not Set";
+        el.style.color = "var(--danger)";
+      }
+    }
+
+    // 3. UI Helpers
+    let selectedAspect = "landscape";
+    function selectAspect(aspect) {
+      selectedAspect = aspect;
+      document.getElementById("card-landscape").classList.toggle("active", aspect === "landscape");
+      document.getElementById("card-portrait").classList.toggle("active", aspect === "portrait");
+    }
+
+    function toggleUploadSection(checked) {
+      document.getElementById("privacy-group").style.display = checked ? "block" : "none";
+    }
+
+    // 4. Trigger GitHub Actions Cloud Runner
+    async function triggerWorkflow(e) {
+      e.preventDefault();
+      const token = getToken();
+      if (!token) {
+        alert("Please configure your GitHub Token first by clicking 'Configure Token' at the top.");
+        promptToken();
+        return;
+      }
+
+      const url = document.getElementById("youtube_url").value.trim();
+      const speaker = document.getElementById("speaker_name").value.trim();
+      const upload = document.getElementById("opt_upload").checked;
+      const privacy = document.getElementById("privacy").value;
+      const audioOnly = document.getElementById("opt_audio_only").checked;
+
+      const btn = document.getElementById("btn-run");
+      btn.disabled = true;
+      btn.innerHTML = "⏳ Sending to Cloud Runner...";
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_FILE}/dispatches`, {
+          method: "POST",
+          headers: {
+            "Authorization": `token ${token}`,
+            "Accept": "application/vnd.github.v3+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ref: "main",
+            inputs: {
+              youtube_url: url,
+              speaker_name: speaker,
+              aspect: selectedAspect,
+              upload: upload,
+              privacy: privacy,
+              audio_only: audioOnly,
+              dry_run: false
+            }
+          })
+        });
+
+        if (res.status === 204) {
+          alert("🎉 Cloud pipeline launched successfully! Rendering video on GitHub Actions.");
+          document.getElementById("youtube_url").value = "";
+          document.getElementById("speaker_name").value = "";
+          setTimeout(fetchRuns, 3000);
+        } else {
+          const err = await res.json();
+          alert("❌ Failed to launch workflow: " + (err.message || res.statusText));
+        }
+      } catch (err) {
+        alert("❌ Network Error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "<span>🚀 Launch Cloud Pipeline</span>";
+      }
+    }
+
+    // 5. Fetch Recent Cloud Runs
+    async function fetchRuns() {
+      const token = getToken();
+      const list = document.getElementById("runs-list");
+      const headers = { "Accept": "application/vnd.github.v3+json" };
+      if (token) headers["Authorization"] = `token ${token}`;
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?per_page=6`, { headers });
+        const data = await res.json();
+        
+        if (!data.workflow_runs || data.workflow_runs.length === 0) {
+          list.innerHTML = `<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:16px;">No cloud runs found yet. Launch one above!</div>`;
+          return;
+        }
+
+        list.innerHTML = data.workflow_runs.map(run => {
+          let statusClass = `status-${run.status}`;
+          if (run.status === "completed") {
+            statusClass = `status-completed_${run.conclusion}`;
+          }
+
+          const date = new Date(run.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const artifactLink = `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/runs/${run.id}`;
+
+          return `
+            <div class="run-item">
+              <div>
+                <div class="run-title">Run #${run.run_number}: ${run.display_title || 'Motivational Cloud Repurpose'}</div>
+                <div class="run-meta">Started at ${date} • <a href="${run.html_url}" target="_blank" style="color:var(--accent); text-decoration:none;">View Cloud Log ↗</a></div>
+                ${run.conclusion === 'success' ? `<a href="${artifactLink}" target="_blank" class="btn-download-artifact">⬇️ Download Video/Audio Artifacts</a>` : ''}
+              </div>
+              <div class="run-status ${statusClass}">${(run.conclusion || run.status).toUpperCase()}</div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        list.innerHTML = `<div style="font-size:12px; color:var(--text-muted); text-align:center;">Configure token to view live run status.</div>`;
+      }
+    }
+
+    function initApp() {
+      updateTokenStatus();
+      fetchRuns();
+      setInterval(fetchRuns, 15000);
+    }
+
+    checkAuth();
+  </script>
+</body>
+</html>
