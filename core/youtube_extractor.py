@@ -33,11 +33,17 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
 
     print(f"[youtube_extractor] Fetching audio & metadata from: {url}")
 
+    cookie_path = "cookies.txt" if (os.path.exists("cookies.txt") and os.path.getsize("cookies.txt") > 10) else None
+    if not cookie_path and os.path.exists(os.path.expanduser("~/Downloads/www.youtube.com_cookies.txt")):
+        cookie_path = os.path.expanduser("~/Downloads/www.youtube.com_cookies.txt")
+
+    # Strategy 1: Standard player with remote EJS solver + cookies (most powerful & reliable)
+    # Strategy 2-4: Fallback to specific player client profiles if needed
     client_strategies = [
-        ["android", "ios", "mweb", "web_embedded"],
-        ["ios", "android"],
-        ["android"],
-        ["mweb", "web_embedded"],
+        None,  # default clients
+        ["web_embedded", "tv"],
+        ["android", "ios"],
+        ["mweb"],
     ]
 
     last_error = None
@@ -45,17 +51,13 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
 
     for idx, clients in enumerate(client_strategies):
         try:
-            print(f"[youtube_extractor] Attempting extraction with client profile: {clients}")
+            print(f"[youtube_extractor] Attempting extraction (Strategy {idx + 1}, clients={clients or 'auto'})...")
             ydl_opts = {
-                "format": "bestaudio/best/ba/b",
+                "format": "ba/b/best/bestaudio",
                 "outtmpl": os.path.join(output_dir, "%(id)s_source.%(ext)s"),
                 "ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe(),
                 "js_runtimes": {"deno": {}, "node": {}},
-                "extractor_args": {
-                    "youtube": {
-                        "player_client": clients,
-                    }
-                },
+                "remote_components": ["ejs:github"],
                 "postprocessors": [{
                     "key": "FFmpegExtractAudio",
                     "preferredcodec": "mp3",
@@ -65,20 +67,24 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
                 "no_warnings": True,
                 "ignoreerrors": False,
             }
-            if os.path.exists("cookies.txt") and os.path.getsize("cookies.txt") > 10:
-                ydl_opts["cookiefile"] = "cookies.txt"
+
+            if clients:
+                ydl_opts["extractor_args"] = {"youtube": {"player_client": clients}}
+            if cookie_path:
+                ydl_opts["cookiefile"] = cookie_path
+                print(f"[youtube_extractor] Using session cookies from: {cookie_path}")
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
                 if info:
                     break
         except Exception as e:
-            print(f"[youtube_extractor] Strategy {idx + 1} ({clients}) failed: {e}")
+            print(f"[youtube_extractor] Strategy {idx + 1} failed: {e}")
             last_error = e
             time.sleep(1)
 
     if not info:
-        raise RuntimeError(f"Failed to download audio after trying multiple player clients. Last error: {last_error}")
+        raise RuntimeError(f"Failed to download audio after trying multiple strategies. Last error: {last_error}")
 
     video_id = info.get("id", "source_video")
     title = info.get("title", "Motivational Speech")
