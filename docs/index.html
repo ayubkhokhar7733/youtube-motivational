@@ -1200,71 +1200,10 @@
       }
     }
 
-    // 8. Direct In-Browser Artifact Downloader
-    async function downloadArtifactDirectly(runId, btn) {
-      const token = getToken();
-      if (!token) {
-        showToast("Please configure your GitHub token first!", "error");
-        document.getElementById("token_input").focus();
-        return;
-      }
-
-      const origText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = "⏳ Locating Artifact...";
-
-      try {
-        // Step 1: Query GitHub Artifacts API for this run
-        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs/${runId}/artifacts`, {
-          headers: {
-            "Authorization": `token ${token}`,
-            "Accept": "application/vnd.github.v3+json"
-          }
-        });
-        const data = await res.json();
-
-        if (!data.artifacts || data.artifacts.length === 0) {
-          showToast("Artifact is still finalizing or expired on GitHub.", "info");
-          btn.innerHTML = origText;
-          btn.disabled = false;
-          return;
-        }
-
-        const art = data.artifacts[0];
-        const sizeMb = (art.size_in_bytes / (1024 * 1024)).toFixed(1);
-        btn.innerHTML = `⏳ Downloading (${sizeMb} MB)...`;
-        showToast(`Starting download: ${art.name} (${sizeMb} MB)...`, "info");
-
-        // Step 2: Stream artifact ZIP directly into browser
-        const dlRes = await fetch(art.archive_download_url, {
-          headers: {
-            "Authorization": `token ${token}`,
-            "Accept": "application/vnd.github.v3+json"
-          }
-        });
-
-        if (dlRes.ok) {
-          const blob = await dlRes.blob();
-          const blobUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = `motivational_video_run${runId}.zip`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(blobUrl);
-          showToast("✅ Download complete! Saved to your Downloads folder.", "success");
-        } else {
-          // Direct authenticated link fallback
-          window.open(`https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/runs/${runId}/artifacts/${art.id}`, "_blank");
-        }
-      } catch (err) {
-        showToast("Opening download on GitHub: " + err.message, "info");
-        window.open(`https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/runs/${runId}`, "_blank");
-      } finally {
-        btn.innerHTML = origText;
-        btn.disabled = false;
-      }
+    // 8. Direct Artifact Downloader
+    function downloadArtifactDirectly(runId, btn) {
+      showToast("Opening GitHub Artifacts download page...", "info");
+      window.open(`https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/runs/${runId}`, "_blank");
     }
 
     function initApp() {
