@@ -467,7 +467,7 @@ def run_pipeline(
     # ── Media Sourcing (Pexels / Pixabay) ─────────────────────────────────
     log(f"🎬 Sourcing media clips and images for {scene_count} scenes in parallel...")
     media_start = time.time()
-    search_topic = f"{detected_speaker} workout discipline" if url else topic
+    search_topic = "motivational workout discipline focus" if url else (topic or "motivational workout discipline focus")
     media_items = fetch_all_media(
         scenes=scenes,
         topic=search_topic,

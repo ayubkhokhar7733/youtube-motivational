@@ -302,15 +302,38 @@ NOISE_WORDS = {
     "detail", "details", "behind", "explore", "explores", "untold", "stories", "daily"
 }
 
-VISUAL_NOUNS_POOL = [
-    "meteor", "asteroid", "fire", "forest", "smoke", "sky", "stars", "space", "earth",
-    "ruins", "stone", "temple", "water", "river", "flood", "trees", "mountain", "ocean",
-    "clouds", "storm", "sun", "ancient", "desert", "ice", "snow", "cave", "ship", "sea",
-    "parchment", "writing", "astronomy", "universe", "planet", "galaxy", "laboratory"
+MOTIVATIONAL_QUERY_BANK = [
+    "athlete workout gym",
+    "runner sprinting sunrise",
+    "boxer training heavy bag",
+    "mountain climber summit",
+    "focused person study work",
+    "calisthenics pullups back",
+    "city skyline night timelapse",
+    "deadlift barbell powerlifting",
+    "man walking rain city",
+    "swimmer racing pool",
+    "cyclist road mountain",
+    "morning routine coffee focus",
+    "meditation yoga peaceful nature",
+    "businessman skyscraper office",
+    "marathon runners finish line",
+    "dramatic stormy ocean waves",
+    "sunrise clouds horizon cinematic",
+    "basketball training court night",
+    "weightlifting dumbell press workout",
+    "crossfit athlete training hard",
+    "trail runner forest mist",
+    "ice bath cold plunge recovery",
+    "climbing rope gym military",
+    "stretching athlete stadium lights",
+    "boxer wrapped hands focus",
+    "fast running shoes track",
+    "deep breathing athlete meditate"
 ]
 
 
-def extract_visual_search_queries(raw_kw: str, narration: str, topic: str) -> list:
+def extract_visual_search_queries(raw_kw: str, narration: str, topic: str, scene_index: int = 0) -> list:
     """
     Extracts concrete, disambiguated, visual-only search queries from scene content
     to ensure stock libraries return highly relevant footage rather than celebratory/unrelated clips.
@@ -322,41 +345,19 @@ def extract_visual_search_queries(raw_kw: str, narration: str, topic: str) -> li
     words = re.sub(r"[^a-zA-Z\s]", " ", (raw_kw or "").lower()).split()
     clean_kw = [w for w in words if w not in NOISE_WORDS and len(w) > 2]
     
-    disambiguated = []
-    for w in clean_kw:
-        if w in DISAMBIGUATION_MAP:
-            disambiguated.append(DISAMBIGUATION_MAP[w])
-        else:
-            disambiguated.append(w)
-    
-    if disambiguated:
-        primary_q = " ".join(disambiguated[:3])
+    if clean_kw:
+        primary_q = " ".join(clean_kw[:3])
         if primary_q and primary_q not in queries:
             queries.append(primary_q)
 
-    # 2. Extract visual nouns from scene narration
-    narr_words = re.sub(r"[^a-zA-Z\s]", " ", (narration or "").lower()).split()
-    matched_visuals = [w for w in narr_words if w in VISUAL_NOUNS_POOL]
-    seen_vis = set()
-    matched_visuals = [x for x in matched_visuals if not (x in seen_vis or seen_vis.add(x))]
-    
-    if matched_visuals:
-        narr_q = " ".join(matched_visuals[:3])
-        if narr_q and narr_q not in queries:
-            queries.append(narr_q)
+    # 2. Add cycling motivational query from the rich bank
+    cycling_q = MOTIVATIONAL_QUERY_BANK[scene_index % len(MOTIVATIONAL_QUERY_BANK)]
+    if cycling_q not in queries:
+        queries.append(cycling_q)
 
-    # 3. Disambiguated topic keywords
-    top_words = re.sub(r"[^a-zA-Z\s]", " ", (topic or "").lower()).split()
-    clean_top = [w for w in top_words if w not in NOISE_WORDS and len(w) > 2]
-    top_disambiguated = [DISAMBIGUATION_MAP.get(w, w) for w in clean_top]
-    if top_disambiguated:
-        top_q = " ".join(top_disambiguated[:3])
-        if top_q and top_q not in queries:
-            queries.append(top_q)
-
-    for guaranteed in ("ancient megalith ruins stone", "ancient civilization history mystery", "ancient architecture aerial landscape"):
-        if guaranteed not in queries:
-            queries.append(guaranteed)
+    next_cycling_q = MOTIVATIONAL_QUERY_BANK[(scene_index + 7) % len(MOTIVATIONAL_QUERY_BANK)]
+    if next_cycling_q not in queries:
+        queries.append(next_cycling_q)
 
     return queries
 
@@ -365,7 +366,7 @@ def extract_visual_search_queries(raw_kw: str, narration: str, topic: str) -> li
 # Per-scene pool fetcher — downloads MULTIPLE clips + images for each scene
 # ---------------------------------------------------------------------------
 
-def fetch_media_pool_for_scene(scene_index, keywords, scene_text, topic="", max_videos=1, max_images=1):
+def fetch_media_pool_for_scene(scene_index, keywords, scene_text, topic="", max_videos=2, max_images=1):
     """
     Returns a list of (filepath, media_type) tuples — a rich pool of media
     for this scene. Videos come first, then images.
@@ -375,7 +376,7 @@ def fetch_media_pool_for_scene(scene_index, keywords, scene_text, topic="", max_
     pool = []
 
     # Get ordered candidate queries
-    search_queries = extract_visual_search_queries(keywords, scene_text, topic)
+    search_queries = extract_visual_search_queries(keywords, scene_text, topic, scene_index=scene_index)
 
     # ── Fetch videos ──────────────────────────────────────────────────────
     if pref in ("video_first", "video_only"):
@@ -393,7 +394,8 @@ def fetch_media_pool_for_scene(scene_index, keywords, scene_text, topic="", max_
                     path = download_video(url, scene_index, slot=len(pool))
                     if path:
                         pool.append((path, "video"))
-                        break
+                        if len(pool) >= max_videos:
+                            break
 
     # ── Fetch images (always, unless video_only) ──────────────────────────
     if pref in ("video_first", "image_only"):
