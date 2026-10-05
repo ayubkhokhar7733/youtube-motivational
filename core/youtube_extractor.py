@@ -33,42 +33,71 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
 
     print(f"[youtube_extractor] Fetching audio & metadata from: {url}")
 
-    # yt-dlp configuration to fetch highest quality audio converted to mp3
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": os.path.join(output_dir, "%(id)s_source.%(ext)s"),
-        "ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe(),
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }],
-        "quiet": False,
-        "no_warnings": True,
-    }
+    client_strategies = [
+        ["android", "ios", "mweb", "web_embedded"],
+        ["ios", "android"],
+        ["android"],
+        ["mweb", "web_embedded"],
+    ]
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        video_id = info.get("id", "source_video")
-        title = info.get("title", "Motivational Speech")
-        description = info.get("description", "")
-        tags = info.get("tags", [])
-        uploader = info.get("uploader", "Motivational Speaker")
-        duration = info.get("duration", 0)
-        thumbnail_url = info.get("thumbnail", "")
+    last_error = None
+    info = None
 
-        expected_audio_path = os.path.join(output_dir, f"{video_id}_source.mp3")
-        if not os.path.exists(expected_audio_path):
-            # Fallback search for any newly created mp3 in output_dir
-            candidates = [
-                os.path.join(output_dir, f)
-                for f in os.listdir(output_dir)
-                if f.startswith(video_id) and f.endswith(".mp3")
-            ]
-            if candidates:
-                expected_audio_path = candidates[0]
-            else:
-                raise FileNotFoundError(f"Failed to extract audio MP3 for video ID: {video_id}")
+    for idx, clients in enumerate(client_strategies):
+        try:
+            print(f"[youtube_extractor] Attempting extraction with client profile: {clients}")
+            ydl_opts = {
+                "format": "bestaudio/best/ba/b",
+                "outtmpl": os.path.join(output_dir, "%(id)s_source.%(ext)s"),
+                "ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe(),
+                "extractor_args": {
+                    "youtube": {
+                        "player_client": clients,
+                        "player_skip": ["webpage", "configs"],
+                    }
+                },
+                "postprocessors": [{
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "192",
+                }],
+                "quiet": False,
+                "no_warnings": True,
+                "ignoreerrors": False,
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                if info:
+                    break
+        except Exception as e:
+            print(f"[youtube_extractor] Strategy {idx + 1} ({clients}) failed: {e}")
+            last_error = e
+            time.sleep(1)
+
+    if not info:
+        raise RuntimeError(f"Failed to download audio after trying multiple player clients. Last error: {last_error}")
+
+    video_id = info.get("id", "source_video")
+    title = info.get("title", "Motivational Speech")
+    description = info.get("description", "")
+    tags = info.get("tags", [])
+    uploader = info.get("uploader", "Motivational Speaker")
+    duration = info.get("duration", 0)
+    thumbnail_url = info.get("thumbnail", "")
+
+    expected_audio_path = os.path.join(output_dir, f"{video_id}_source.mp3")
+    if not os.path.exists(expected_audio_path):
+        # Fallback search for any newly created mp3 or audio file in output_dir
+        candidates = [
+            os.path.join(output_dir, f)
+            for f in os.listdir(output_dir)
+            if f.startswith(video_id) and f.endswith((".mp3", ".m4a", ".webm", ".opus"))
+        ]
+        if candidates:
+            expected_audio_path = candidates[0]
+        else:
+            raise FileNotFoundError(f"Failed to extract audio MP3 for video ID: {video_id}")
 
     print(f"[youtube_extractor] Downloaded audio: {expected_audio_path} ({duration}s, {os.path.getsize(expected_audio_path) / 1024 / 1024:.2f} MB)")
 
