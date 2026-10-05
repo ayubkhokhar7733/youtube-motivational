@@ -1123,7 +1123,7 @@
       }
     }
 
-    // 7. Fetch Recent Cloud Runs and Output Artifacts
+    // 7. Fetch Recent Video Generation Cloud Runs
     async function fetchRuns() {
       const token = getToken();
       const list = document.getElementById("runs-list");
@@ -1131,11 +1131,12 @@
       if (token) headers["Authorization"] = `token ${token}`;
 
       try {
-        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?per_page=6`, { headers });
+        // Query ONLY the motivational video workflow runs (filter out website deployments)
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=6`, { headers });
         const data = await res.json();
         
         if (!data.workflow_runs || data.workflow_runs.length === 0) {
-          list.innerHTML = `<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:16px;">No cloud runs found yet. Click Generate above to start your first video!</div>`;
+          list.innerHTML = `<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:16px;">No video generation runs found yet. Click Generate above to start your first video!</div>`;
           return;
         }
 
