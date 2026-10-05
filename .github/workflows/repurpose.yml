@@ -70,6 +70,16 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
+      - name: Set up Node.js for yt-dlp challenge solving
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Deno for yt-dlp EJS solver
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
       - name: Install system dependencies & FFmpeg
         run: |
           sudo apt-get update
@@ -80,6 +90,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --upgrade yt-dlp
+
+      - name: Prepare YouTube Cookies (Optional)
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            echo "$YOUTUBE_COOKIES" > cookies.txt
+            echo "✅ Loaded YouTube authentication cookies"
+          fi
 
       - name: Run Motivational Repurposing Pipeline
         env:

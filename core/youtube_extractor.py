@@ -50,10 +50,10 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
                 "format": "bestaudio/best/ba/b",
                 "outtmpl": os.path.join(output_dir, "%(id)s_source.%(ext)s"),
                 "ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe(),
+                "js_runtimes": {"deno": {}, "node": {}},
                 "extractor_args": {
                     "youtube": {
                         "player_client": clients,
-                        "player_skip": ["webpage", "configs"],
                     }
                 },
                 "postprocessors": [{
@@ -65,6 +65,8 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
                 "no_warnings": True,
                 "ignoreerrors": False,
             }
+            if os.path.exists("cookies.txt") and os.path.getsize("cookies.txt") > 10:
+                ydl_opts["cookiefile"] = "cookies.txt"
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
