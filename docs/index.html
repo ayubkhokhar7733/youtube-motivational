@@ -36,6 +36,7 @@
       overflow-x: hidden;
     }
 
+    /* Ambient background glow */
     body::before {
       content: '';
       position: fixed;
@@ -55,7 +56,7 @@
       z-index: 1;
     }
 
-    /* Floating Toast Notifications */
+    /* Toast Notification Container */
     #toast-container {
       position: fixed;
       top: 20px;
@@ -84,19 +85,19 @@
     }
 
     .toast-success {
-      background: rgba(16, 185, 129, 0.95);
+      background: rgba(16, 185, 129, 0.9);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .toast-error {
-      background: rgba(239, 68, 68, 0.95);
+      background: rgba(239, 68, 68, 0.9);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .toast-info {
-      background: rgba(37, 99, 235, 0.95);
+      background: rgba(37, 99, 235, 0.9);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
@@ -110,7 +111,7 @@
     #lock-screen {
       position: fixed;
       inset: 0;
-      background: rgba(9, 13, 22, 0.96);
+      background: rgba(9, 13, 22, 0.95);
       backdrop-filter: blur(16px);
       display: flex;
       flex-direction: column;
@@ -753,11 +754,16 @@
         <span id="token-status-pill" class="token-status-pill pill-not-set">● Token Required</span>
       </div>
       <div class="token-input-group">
-        <input type="password" id="token_input" class="form-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx (classic with repo &amp; workflow scopes)" oninput="handleTokenInputChange(this.value)">
+        <input type="password" id="token_input" class="form-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx (must start with ghp_...)" oninput="handleTokenInputChange(this.value)">
         <button type="button" class="btn-eye-toggle" onclick="toggleTokenVisibility()" title="Show/Hide Token">👁️</button>
-        <button type="button" class="btn-token-action" onclick="saveTokenExplicitly()">Save</button>
+        <button type="button" class="btn-token-action" id="btn-save-token" onclick="saveTokenExplicitly()">Save &amp; Verify</button>
       </div>
-      <span class="form-hint">Stored safely in your browser (localStorage) to trigger GitHub Actions runner pipelines.</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; flex-wrap: wrap; gap: 8px;">
+        <span class="form-hint" style="margin:0;">Stored locally in your browser to dispatch cloud renderers.</span>
+        <a href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=Motivational+Cloud+Studio" target="_blank" style="color:var(--accent); font-size:12px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px; background:rgba(56,189,248,0.1); padding:4px 10px; border-radius:6px; border:1px solid rgba(56,189,248,0.3);">
+          ➕ Generate New Token on GitHub ↗
+        </a>
+      </div>
     </div>
 
     <!-- Main Generator Card -->
@@ -869,7 +875,6 @@
     // 1. Toast Notification Helper
     function showToast(message, type = "info") {
       const container = document.getElementById("toast-container");
-      if (!container) return;
       const toast = document.createElement("div");
       toast.className = `toast toast-${type}`;
       
@@ -894,9 +899,6 @@
         document.getElementById("lock-screen").style.display = "none";
         document.getElementById("main-app").style.display = "block";
         initApp();
-      } else {
-        document.getElementById("lock-screen").style.display = "flex";
-        document.getElementById("main-app").style.display = "none";
       }
     }
 
@@ -924,21 +926,52 @@
       const trimmed = val.trim();
       if (trimmed) {
         localStorage.setItem("gh_token", trimmed);
-        updateTokenStatus();
       }
     }
 
-    function saveTokenExplicitly() {
+    async function saveTokenExplicitly() {
       const val = document.getElementById("token_input").value.trim();
-      if (val) {
-        localStorage.setItem("gh_token", val);
-        updateTokenStatus();
-        showToast("GitHub Token Saved!", "success");
-        fetchRuns();
-      } else {
+      const btn = document.getElementById("btn-save-token");
+      
+      if (!val) {
         localStorage.removeItem("gh_token");
         updateTokenStatus();
         showToast("Token cleared", "info");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Verifying...";
+      
+      try {
+        const res = await fetch("https://api.github.com/user", {
+          headers: {
+            "Authorization": `token ${val}`,
+            "Accept": "application/vnd.github.v3+json"
+          }
+        });
+
+        if (res.status === 200) {
+          const user = await res.json();
+          localStorage.setItem("gh_token", val);
+          const pill = document.getElementById("token-status-pill");
+          pill.className = "token-status-pill pill-connected";
+          pill.textContent = `● Verified (@${user.login})`;
+          showToast(`✅ Verified! Connected to GitHub as @${user.login}`, "success");
+          fetchRuns();
+        } else if (res.status === 401) {
+          const pill = document.getElementById("token-status-pill");
+          pill.className = "token-status-pill pill-not-set";
+          pill.textContent = "● Bad Credentials";
+          showToast("❌ Bad Credentials: The token is invalid. Please generate a new token via the link below.", "error");
+        } else {
+          showToast("Token check error: " + res.statusText, "error");
+        }
+      } catch (err) {
+        showToast("Network check error: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Save & Verify";
       }
     }
 
@@ -947,7 +980,7 @@
       input.type = input.type === "password" ? "text" : "password";
     }
 
-    function updateTokenStatus() {
+    async function updateTokenStatus() {
       const token = getToken();
       const pill = document.getElementById("token-status-pill");
       const input = document.getElementById("token_input");
@@ -955,7 +988,7 @@
       if (token) {
         if (!input.value) input.value = token;
         pill.className = "token-status-pill pill-connected";
-        pill.textContent = "● Connected (••••" + token.slice(-4) + ")";
+        pill.textContent = "● Saved (••••" + token.slice(-4) + ")";
       } else {
         pill.className = "token-status-pill pill-not-set";
         pill.textContent = "● Token Required";
