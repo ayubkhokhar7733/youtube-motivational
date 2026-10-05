@@ -829,6 +829,19 @@
           </div>
         </div>
 
+        <!-- Clip Length / Target Duration Selection -->
+        <div class="form-group">
+          <label for="clip_duration">Target Clip Duration</label>
+          <select id="clip_duration" class="form-select">
+            <option value="180" selected>🔥 3 Minutes (High-Impact Highlight — Recommended ~3m build)</option>
+            <option value="60">⚡ 1 Minute (YouTube Shorts / TikTok — Fast ~1m build)</option>
+            <option value="300">🚀 5 Minutes (Power Speech — ~5m build)</option>
+            <option value="600">🎯 10 Minutes (Extended Cut — ~10m build)</option>
+            <option value="0">🎬 Full Audio (Render Entire Full-Length Video — Extended build)</option>
+          </select>
+          <span class="form-hint">Choose whether to extract a high-retention highlight clip or render the full speech.</span>
+        </div>
+
         <!-- Audio-Only Fast Test Mode -->
         <div class="form-group">
           <div class="toggle-row" onclick="document.getElementById('opt_audio_only').click()">
@@ -1077,6 +1090,7 @@
 
       const url = document.getElementById("youtube_url").value.trim();
       const speaker = document.getElementById("speaker_name").value.trim();
+      const duration = document.getElementById("clip_duration").value;
       const audioOnly = document.getElementById("opt_audio_only").checked;
 
       const btn = document.getElementById("btn-run");
@@ -1098,6 +1112,7 @@
               speaker_name: speaker,
               speaker_image: speakerPhotoData || "",
               aspect: selectedAspect,
+              duration: duration,
               upload: false,
               audio_only: audioOnly,
               dry_run: false

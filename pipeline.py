@@ -297,8 +297,31 @@ def run_pipeline(
         audio_path = yt_data["audio_path"]
         source_title = yt_data["title"]
         source_desc = yt_data["description"]
-        source_tags = yt_data["tags"]
         source_duration = float(yt_data.get("duration") or 60.0)
+
+        # ── Duration Trimming for High-Impact Highlights ──
+        if duration and int(duration) > 0 and int(duration) < source_duration:
+            target_cut_sec = int(duration)
+            log(f"✂️ [Motivational Flow] Trimming source audio from {source_duration:.1f}s to requested duration: {target_cut_sec}s...")
+            import imageio_ffmpeg
+            import subprocess
+            ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+            trimmed_audio = os.path.join(config.TEMP_DIR, f"{yt_data['video_id']}_trimmed_{target_cut_sec}s.mp3")
+            trim_cmd = [
+                ffmpeg_exe, "-y", "-nostdin",
+                "-i", audio_path,
+                "-t", str(target_cut_sec),
+                "-c", "copy",
+                trimmed_audio
+            ]
+            res = subprocess.run(trim_cmd, capture_output=True, stdin=subprocess.DEVNULL)
+            if res.returncode == 0 and os.path.exists(trimmed_audio) and os.path.getsize(trimmed_audio) > 1000:
+                audio_path = trimmed_audio
+                source_duration = float(target_cut_sec)
+                log(f"✅ Audio trimmed successfully to {source_duration:.1f}s")
+            else:
+                log(f"⚠️ Audio trimming warning: using full audio track ({source_duration:.1f}s)")
+
         voice_duration = source_duration
 
         # Transcription with Groq Whisper

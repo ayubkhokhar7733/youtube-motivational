@@ -25,6 +25,11 @@ on:
         options:
           - landscape
           - portrait
+      duration:
+        description: 'Clip Duration in seconds (e.g. 180 for 3m, 300 for 5m, or 0 for full audio)'
+        required: false
+        default: '180'
+        type: string
       audio_only:
         description: 'Test mode: Audio extraction & transcription only'
         required: false
@@ -56,7 +61,7 @@ permissions:
 jobs:
   repurpose-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 360
 
     steps:
       - name: Checkout repository
@@ -122,6 +127,11 @@ jobs:
           
           ASPECT="${{ github.event.inputs.aspect || 'landscape' }}"
           CMD="$CMD --aspect $ASPECT"
+          
+          DURATION="${{ github.event.inputs.duration }}"
+          if [ -n "$DURATION" ] && [ "$DURATION" != "0" ] && [ "$DURATION" != "full" ]; then
+            CMD="$CMD --duration $DURATION"
+          fi
           
           if [ "${{ github.event.inputs.audio_only }}" = "true" ]; then
             CMD="$CMD --audio-only"

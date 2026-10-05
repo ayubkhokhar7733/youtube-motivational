@@ -73,6 +73,7 @@ def _make_video_chunk(video_path: str, duration: float) -> str:
         vf = f"fps=30,scale={target_w}:{target_h}:force_original_aspect_ratio=increase,crop={target_w}:{target_h}"
         cmd = [
             ffmpeg_exe, "-y", "-nostdin",
+            "-threads", "0",
             "-stream_loop", "-1",
             "-i", video_path,
             "-t", f"{duration:.3f}",
@@ -111,6 +112,7 @@ def _make_image_chunk(image_path: str, duration: float) -> str:
         )
         cmd = [
             ffmpeg_exe, "-y", "-nostdin",
+            "-threads", "0",
             "-loop", "1",
             "-i", image_path,
             "-t", f"{duration:.3f}",
@@ -125,6 +127,7 @@ def _make_image_chunk(image_path: str, duration: float) -> str:
         vf_fallback = f"fps=30,scale={target_w}:{target_h}:force_original_aspect_ratio=increase,crop={target_w}:{target_h}"
         cmd_fallback = [
             ffmpeg_exe, "-y", "-nostdin",
+            "-threads", "0",
             "-loop", "1",
             "-i", image_path,
             "-t", f"{duration:.3f}",
@@ -142,7 +145,7 @@ def _make_image_chunk(image_path: str, duration: float) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Pool-based fast-cut builder
+# Pool-based fast-cut spec planner
 # ---------------------------------------------------------------------------
 
 _CUT_VIDEO_MIN = 2.4
@@ -151,10 +154,10 @@ _CUT_IMAGE_MIN = 2.0
 _CUT_IMAGE_MAX = 3.2
 
 
-def _build_cuts_from_pool(pool, total_duration, enable_zoom=True, global_unused=None, used_set=None):
+def _build_cut_specs_from_pool(pool, total_duration, global_unused=None, used_set=None):
     """
     Given a pool of (path, media_type) tuples and a total duration to fill,
-    returns a list of on-disk MP4 chunk file paths using strictly real footage.
+    returns a list of (media_path, media_type, cut_dur) tuples using strictly real footage.
     Prioritizes unseen assets so ZERO images or clips repeat in the video.
     """
     if used_set is None:
@@ -192,7 +195,7 @@ def _build_cuts_from_pool(pool, total_duration, enable_zoom=True, global_unused=
     if not sequence:
         sequence = active_pool[:]
 
-    chunk_paths = []
+    cut_specs = []
     elapsed = 0.0
     seq_idx = 0
 
@@ -223,30 +226,21 @@ def _build_cuts_from_pool(pool, total_duration, enable_zoom=True, global_unused=
                 round(random.uniform(_CUT_VIDEO_MIN, _CUT_VIDEO_MAX), 1),
                 remaining
             )
-            if cut_dur < 0.5:
-                cut_dur = remaining
-            ch = _make_video_chunk(media_path, cut_dur)
-            if ch is None:
-                img_candidates = [p for p, t in sequence if t == "image" and os.path.exists(p)]
-                if img_candidates:
-                    fallback_img = img_candidates[0]
-                    ch = _make_image_chunk(fallback_img, cut_dur)
         else:
             cut_dur = min(
                 round(random.uniform(_CUT_IMAGE_MIN, _CUT_IMAGE_MAX), 1),
                 remaining
             )
-            if cut_dur < 0.5:
-                cut_dur = remaining
-            ch = _make_image_chunk(media_path, cut_dur)
 
-        if ch:
-            chunk_paths.append(ch)
-            used_set.add(media_path)
-            elapsed += cut_dur
-        else:
-            if seq_idx > len(sequence) * 3:
-                break
+        if cut_dur < 0.5:
+            cut_dur = remaining
+
+        cut_specs.append((media_path, media_type, cut_dur))
+        used_set.add(media_path)
+        elapsed += cut_dur
+
+        if seq_idx > len(sequence) * 4:
+            break
 
     # Fill any small remaining gap using unseen footage if available
     gap = total_duration - elapsed
@@ -254,15 +248,10 @@ def _build_cuts_from_pool(pool, total_duration, enable_zoom=True, global_unused=
         unseen_gap = [x for x in (global_unused or sequence) if x[0] not in used_set and os.path.exists(x[0])]
         gap_item = unseen_gap[0] if unseen_gap else sequence[0]
         media_path, media_type = gap_item
-        if media_type == "video":
-            ch = _make_video_chunk(media_path, gap) or _make_image_chunk(media_path, gap)
-        else:
-            ch = _make_image_chunk(media_path, gap)
-        if ch:
-            chunk_paths.append(ch)
-            used_set.add(media_path)
+        cut_specs.append((media_path, media_type, gap))
+        used_set.add(media_path)
 
-    return chunk_paths
+    return cut_specs
 
 
 # ---------------------------------------------------------------------------
@@ -541,7 +530,7 @@ def compose_video(scenes, media_items, srt_path, voiceover_path, voiceover_durat
     total_scene_dur = sum(s.get("duration_sec", 5) for s in scenes)
     time_factor     = voiceover_duration / max(1.0, total_scene_dur)
 
-    all_cuts = []      # flat list of all individual sub-clips
+    all_cut_specs = []
     cumulative_dur = 0.0
 
     # Collect global pool of all verified real stock videos and photos
@@ -577,15 +566,38 @@ def compose_video(scenes, media_items, srt_path, voiceover_path, voiceover_durat
         
         effective_pool = real_pool if real_pool else pool
 
-        cuts = _build_cuts_from_pool(
+        specs = _build_cut_specs_from_pool(
             effective_pool,
             scene_dur,
-            enable_zoom=enable_zoom,
             global_unused=global_real_pool,
             used_set=used_set,
         )
-        all_cuts.extend(cuts)
+        all_cut_specs.extend(specs)
         cumulative_dur += scene_dur
+
+    if not all_cut_specs:
+        raise RuntimeError("No scene clips were planned — check media_items list.")
+
+    print(f"[video_composer] Rendering {len(all_cut_specs)} cuts in parallel with 4 threads...")
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _render_spec(item):
+        idx, (media_path, media_type, cut_dur) = item
+        if media_type == "video":
+            ch = _make_video_chunk(media_path, cut_dur)
+            if not ch:
+                ch = _make_image_chunk(media_path, cut_dur)
+            return (idx, ch)
+        else:
+            ch = _make_image_chunk(media_path, cut_dur)
+            return (idx, ch)
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        indexed_items = list(enumerate(all_cut_specs))
+        rendered_results = list(executor.map(_render_spec, indexed_items))
+
+    rendered_results.sort(key=lambda x: x[0])
+    all_cuts = [ch for idx, ch in rendered_results if ch]
 
     if not all_cuts:
         raise RuntimeError("No scene clips were created — check media_items list.")
@@ -727,7 +739,7 @@ def compose_video(scenes, media_items, srt_path, voiceover_path, voiceover_durat
         pct = 62
         last_size = -1
         stagnant_sec = 0
-        max_total_sec = 600  # 10 minutes max render limit
+        max_total_sec = max(1800, int(voiceover_duration * 4))  # Scale render limit dynamically with video length
         total_sec = 0
         
         while not _tick_stop.is_set():
