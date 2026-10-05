@@ -409,83 +409,99 @@ def generate_speaker_badge_overlay(
     height: int = 1080,
 ) -> str:
     """
-    Renders a transparent 1080p overlay containing:
-    1. Circular speaker avatar headshot at top-left.
-    2. Polished dark pill capsule with:
-       'SPEAKER' (accent gold)
-       '{SPEAKER_NAME}' (bold white)
-    Saves to output_path and returns absolute path.
+    Renders a professional 1080p overlay:
+    1. If a speaker cutout image is provided, places the cutout in the bottom-left corner (~20% screen area).
+    2. Renders an aesthetic top-left channel / speaker nameplate bar (dark glassmorphism + gold accents).
+    3. Never inserts random/unrequested thumbnail images.
     """
     if not output_path:
         output_path = os.path.join(config.TEMP_DIR, "speaker_badge_overlay.png")
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # 1. Base transparent 1920x1080 canvas
     canvas = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
 
-    # Coordinates
-    x_pos = 55
-    y_pos = 50
-    avatar_size = 96
-
-    # Prepare Avatar
-    avatar_img = _create_circular_avatar(avatar_image_path, size=avatar_size)
-    avatar_w, avatar_h = avatar_img.size
-
-    # Font handling
     font_path = config.FONT_PATH if os.path.exists(config.FONT_PATH) else "arialbd.ttf"
     try:
-        font_label = ImageFont.truetype(font_path, 15)
-        font_name = ImageFont.truetype(font_path, 26)
-        font_role = ImageFont.truetype(font_path, 14)
+        font_name = ImageFont.truetype(font_path, 21)
+        font_sub = ImageFont.truetype(font_path, 13)
     except Exception:
-        font_label = ImageFont.load_default()
         font_name = ImageFont.load_default()
-        font_role = ImageFont.load_default()
+        font_sub = ImageFont.load_default()
 
-    display_name = speaker_name.upper().strip()
+    display_name = (speaker_name or "CONFERENCIA MOTIVACIONAL").upper().strip()
+    role_text = (speaker_role or "Mente • Disciplina • Crecimiento").strip()
+
+    # ── 1. Bottom-Left Speaker Cutout Placement ─────────────────────────────
+    cutout_img = None
+    if avatar_image_path:
+        try:
+            image_str = str(avatar_image_path).strip()
+            if "base64," in image_str or image_str.startswith("/9j/") or image_str.startswith("iVBOR"):
+                import base64
+                import io
+                encoded = image_str.split("base64,", 1)[-1].strip()
+                missing_padding = len(encoded) % 4
+                if missing_padding:
+                    encoded += "=" * (4 - missing_padding)
+                img_bytes = base64.b64decode(encoded)
+                cutout_img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
+            elif image_str.startswith("http://") or image_str.startswith("https://"):
+                import io
+                import requests
+                resp = requests.get(image_str, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+                if resp.status_code == 200:
+                    cutout_img = Image.open(io.BytesIO(resp.content)).convert("RGBA")
+            elif os.path.exists(image_str):
+                cutout_img = Image.open(image_str).convert("RGBA")
+        except Exception as e:
+            print(f"[youtube_extractor] Speaker cutout load error: {e}")
+            cutout_img = None
+
+    if cutout_img is not None:
+        try:
+            # Resize cutout to sit in bottom-left (~40% height = 432px for 1080p, taking ~20% of area)
+            target_h = int(height * 0.40)
+            scale = target_h / cutout_img.height
+            target_w = int(cutout_img.width * scale)
+            cutout_resized = cutout_img.resize((target_w, target_h), Image.LANCZOS)
+            
+            # Position flush to bottom-left with 35px margin
+            pos_x = 35
+            pos_y = height - target_h
+            canvas.paste(cutout_resized, (pos_x, pos_y), cutout_resized)
+            print(f"[youtube_extractor] Placed speaker cutout in bottom-left ({target_w}x{target_h}px)")
+        except Exception as e:
+            print(f"[youtube_extractor] Cutout placement error: {e}")
+
+    # ── 2. Top-Left Aesthetic Nameplate Bar (No random thumbnail images) ────
+    bar_x = 45
+    bar_y = 45
     name_bbox = draw.textbbox((0, 0), display_name, font=font_name)
-    name_w = name_bbox[2] - name_bbox[0]
+    role_bbox = draw.textbbox((0, 0), role_text, font=font_sub)
+    text_w = max(name_bbox[2] - name_bbox[0], role_bbox[2] - role_bbox[0])
+    bar_w = max(340, text_w + 50)
+    bar_h = 66
 
-    # Calculate pill background size
-    pill_padding_x = 24
-    pill_w = max(220, name_w + avatar_w + pill_padding_x * 2 + 15)
-    pill_h = avatar_h + 12
-
-    # Draw rounded pill capsule backdrop (dark semi-transparent with thin border)
-    pill_x1 = x_pos + avatar_w // 2
-    pill_y1 = y_pos + (avatar_h - pill_h) // 2
-    pill_x2 = pill_x1 + pill_w
-    pill_y2 = pill_y1 + pill_h
-
-    # Rounded rectangle capsule background
+    # Sleek dark frosted glass capsule with subtle gold accent outline
     draw.rounded_rectangle(
-        [pill_x1, pill_y1, pill_x2, pill_y2],
-        radius=26,
-        fill=(12, 16, 24, 215),
-        outline=(255, 220, 50, 160),
+        [bar_x, bar_y, bar_x + bar_w, bar_y + bar_h],
+        radius=14,
+        fill=(12, 16, 26, 220),
+        outline=(255, 220, 50, 180),
         width=2,
     )
 
-    # Paste circular avatar on the left side overlapping the pill
-    canvas.paste(avatar_img, (x_pos, y_pos), avatar_img)
+    # Accent left gold indicator bar
+    draw.rounded_rectangle(
+        [bar_x + 6, bar_y + 10, bar_x + 10, bar_y + bar_h - 10],
+        radius=2,
+        fill=(255, 220, 50, 255),
+    )
 
-    # Text coordinates inside pill
-    text_x = x_pos + avatar_w + 18
-    text_y_label = pill_y1 + 12
-    text_y_name = text_y_label + 20
-
-    # Draw "SPEAKER" badge
-    draw.text((text_x, text_y_label), "SPEAKER", font=font_label, fill=(255, 220, 50, 255))
-
-    # Draw Speaker Name
-    draw.text((text_x, text_y_name), display_name, font=font_name, fill=(255, 255, 255, 255))
-
-    # Optional role / bio
-    if speaker_role:
-        text_y_role = text_y_name + 30
-        draw.text((text_x, text_y_role), speaker_role.upper()[:30], font=font_role, fill=(180, 195, 215, 220))
+    # Text content inside top-left bar
+    draw.text((bar_x + 22, bar_y + 10), display_name, font=font_name, fill=(255, 255, 255, 255))
+    draw.text((bar_x + 22, bar_y + 38), role_text, font=font_sub, fill=(255, 220, 50, 240))
 
     canvas.save(output_path, "PNG")
     print(f"[youtube_extractor] Created speaker badge overlay at: {output_path}")
