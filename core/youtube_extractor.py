@@ -342,12 +342,16 @@ def _create_circular_avatar(image_path: str, size: int = 110) -> Image.Image:
     if image_path:
         try:
             image_str = str(image_path).strip()
-            # 1. Base64 data URI or raw base64
-            if "base64," in image_str:
+            # 1. Base64 data URI or raw base64 string
+            if "base64," in image_str or image_str.startswith("/9j/") or image_str.startswith("iVBOR"):
                 import base64
                 import io
-                header, encoded = image_str.split("base64,", 1)
-                img_bytes = base64.b64decode(encoded.strip())
+                encoded = image_str.split("base64,", 1)[-1].strip()
+                # fix missing base64 padding
+                missing_padding = len(encoded) % 4
+                if missing_padding:
+                    encoded += "=" * (4 - missing_padding)
+                img_bytes = base64.b64decode(encoded)
                 im = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
             elif image_str.startswith("http://") or image_str.startswith("https://"):
                 import io
@@ -358,7 +362,7 @@ def _create_circular_avatar(image_path: str, size: int = 110) -> Image.Image:
             elif os.path.exists(image_str):
                 im = Image.open(image_str).convert("RGBA")
         except Exception as e:
-            print(f"[youtube_extractor] Avatar load error from '{str(image_path)[:30]}...': {e}")
+            print(f"[youtube_extractor] Avatar load warning: {e}")
             im = None
 
     if im is not None:

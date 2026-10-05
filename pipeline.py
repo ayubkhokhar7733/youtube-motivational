@@ -297,6 +297,7 @@ def run_pipeline(
         audio_path = yt_data["audio_path"]
         source_title = yt_data["title"]
         source_desc = yt_data["description"]
+        source_tags = yt_data.get("tags", [])
         source_duration = float(yt_data.get("duration") or 60.0)
 
         # ── Duration Trimming for High-Impact Highlights ──
