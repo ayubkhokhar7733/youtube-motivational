@@ -4,6 +4,8 @@
 !.env.example
 user_settings.json
 client_secrets.json
+client_secret*.json
+AUTH_URL.txt
 credentials.json
 token.json
 
