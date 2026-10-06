@@ -340,44 +340,70 @@ def spin_motivational_metadata(
     config.reload()
     api_key = config.GROQ_API_KEY
 
-    clean_speaker = speaker_name.strip() if speaker_name else "Motivational Leader"
+    clean_speaker = speaker_name.strip() if speaker_name else "Sabiduría Diaria"
+    is_spanish = bool(re.search(r'[áéíóúñ¿¡]', f"{original_title} {original_description} {transcript}", re.IGNORECASE)) or any(w in f"{original_title.lower()} {transcript[:200].lower()}" for w in [" en ", " de ", " la ", " el ", " tu ", " que ", " como ", " para "])
 
     def _fallback_spin():
-        templates = [
-            f"{clean_speaker}: The Uncomfortable Truth Nobody Wants To Hear",
-            f"{clean_speaker}: The One Rule That Changes Everything",
-            f"{clean_speaker}: Why 99% Of People Never Succeed (Fix This)",
-            f"{clean_speaker}: Do This Every Morning And Watch Your Life Change",
-            f"{clean_speaker}: The Brutal Reality Of Success And Discipline",
-        ]
-        spun_title = truncate_title(random.choice(templates), max_length=70)
-        spun_desc = (
-            f"Powerful motivational speech featuring {clean_speaker} on mindset, relentless discipline, and overcoming adversity.\n\n"
-            f"\"If you want to change your life, you have to be willing to do the things everyone else avoids.\"\n\n"
-            f"Speaker: {clean_speaker}\n"
-            f"Music: Copyright-free ambient motivational soundtrack.\n\n"
-            f"Daily motivational speeches and mindset inspiration. Subscribe for your daily reminder to stay focused and keep pushing."
-        )
-        base_tags = [
-            clean_speaker.lower(),
-            f"{clean_speaker.lower()} motivation",
-            f"{clean_speaker.lower()} speech",
-            "motivation",
-            "motivational speech",
-            "discipline",
-            "mental toughness",
-            "mindset",
-            "success motivation",
-            "morning motivation",
-            "self improvement",
-            "life advice",
-            "best motivational video",
-        ]
+        if is_spanish:
+            templates = [
+                f"{clean_speaker}: La Verdad Que Nadie Te Dice",
+                f"{clean_speaker}: La Regla Que Cambia Todo",
+                f"{clean_speaker}: Por Qué el 99% Fracasa (Corrige Esto)",
+                f"{clean_speaker}: Haz Esto y Tu Mente Cambiará Para Siempre",
+                f"{clean_speaker}: La Dura Realidad del Éxito y la Disciplina",
+            ]
+            spun_title = truncate_title(random.choice(templates), max_length=70)
+            spun_desc = (
+                f"Poderoso mensaje de {clean_speaker} sobre psicología, disciplina, mentalidad y superación personal.\n\n"
+                f"\"Si quieres cambiar tu vida, debes estar dispuesto a hacer lo que la mayoría evita.\"\n\n"
+                f"Voz / Orador: {clean_speaker}\n"
+                f"Canal: Sabiduría Diaria\n\n"
+                f"Suscríbete a Sabiduría Diaria para tu dosis diaria de motivación, lecciones de vida y crecimiento personal."
+            )
+            base_tags = [
+                clean_speaker.lower(),
+                "sabiduria diaria",
+                "motivacion",
+                "psicologia",
+                "desarrollo personal",
+                "disciplina",
+                "mentalidad ganadora",
+                "exito",
+                "superacion personal",
+                "estoicismo",
+            ]
+        else:
+            templates = [
+                f"{clean_speaker}: The Uncomfortable Truth Nobody Wants To Hear",
+                f"{clean_speaker}: The One Rule That Changes Everything",
+                f"{clean_speaker}: Why 99% Of People Never Succeed (Fix This)",
+                f"{clean_speaker}: Do This Every Morning And Watch Your Life Change",
+                f"{clean_speaker}: The Brutal Reality Of Success And Discipline",
+            ]
+            spun_title = truncate_title(random.choice(templates), max_length=70)
+            spun_desc = (
+                f"Powerful motivational speech featuring {clean_speaker} on mindset, relentless discipline, and overcoming adversity.\n\n"
+                f"\"If you want to change your life, you have to be willing to do the things everyone else avoids.\"\n\n"
+                f"Speaker: {clean_speaker}\n"
+                f"Channel: Sabiduría Diaria\n\n"
+                f"Subscribe to Sabiduría Diaria for daily motivation, life lessons, and personal growth."
+            )
+            base_tags = [
+                clean_speaker.lower(),
+                f"{clean_speaker.lower()} motivation",
+                f"{clean_speaker.lower()} speech",
+                "motivation",
+                "motivational speech",
+                "discipline",
+                "mental toughness",
+                "mindset",
+                "success motivation",
+            ]
         return {
             "title": spun_title,
             "description": spun_desc,
             "tags": base_tags[:18],
-            "category": "People & Blogs",
+            "category": "Education",
             "speaker_name": clean_speaker,
         }
 
@@ -389,28 +415,29 @@ def spin_motivational_metadata(
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
 
         prompt = (
-            "You are an elite YouTube strategist specializing in high-performing motivational speech channels (like Motiversity, Ben Lionel Scott, Be Inspired).\n"
+            "You are an elite YouTube SEO strategist specializing in high-performing educational & motivational self-improvement channels (like Sabiduría Diaria, Mente Inteligente, Motiversity).\n"
+            "IMPORTANT: Detect the source language. If the source title or transcript is in Spanish, ALL output (title, description, tags) MUST BE IN SPANISH (Español). If English, output in English.\n"
             "Given the original video title, description, and transcript snippet below, generate:\n\n"
             "1. TITLE (50-68 characters max):\n"
-            "   - Re-write the original title to be distinct and fresh, but targeting the exact same emotional appeal and viewer curiosity.\n"
-            f"   - ALWAYS front-load the speaker's name: '{clean_speaker}: [Punchy Hook / Insight]'\n"
+            "   - Re-write the original title to be distinct, captivating, and fresh, targeting viewer curiosity, psychology, or mindset.\n"
+            f"   - If speaker is known and recognized, format as: '{clean_speaker}: [Punchy Hook / Insight]'\n"
             "   - Clean formatting: Capitalize First Letters, no ALL CAPS, no emojis.\n"
-            "   - High CTR, direct, intense, urgent.\n\n"
-            "2. DESCRIPTION (150-250 words):\n"
-            "   - First 2 sentences must hook the viewer and summarize the core lesson.\n"
+            "   - High CTR, direct, intriguing, urgent.\n\n"
+            "2. DESCRIPTION (150-250 words in the same language):\n"
+            "   - First 2 sentences must hook the viewer and summarize the core psychological or life lesson.\n"
             "   - Highlight a powerful quote extracted from the transcript.\n"
-            f"   - Give clear editorial credit: 'Speaker: {clean_speaker}'.\n"
-            "   - Add 3-4 lines of natural search queries for people seeking discipline, focus, and motivation.\n"
-            "   - End with a clean channel note.\n\n"
-            "3. TAGS (15-20 tags):\n"
-            f"   - Mix of specific tags ({clean_speaker}, {clean_speaker} speech, {clean_speaker} motivation) and top motivational search queries.\n\n"
-            "4. CATEGORY: 'People & Blogs' or 'Education'.\n\n"
+            f"   - Give clear editorial credit: 'Voz / Orador: {clean_speaker}'.\n"
+            "   - Add 3-4 lines of natural search queries for people seeking mental clarity, discipline, and personal growth.\n"
+            "   - End with: 'Suscríbete a Sabiduría Diaria para tu dosis de aprendizaje y motivación.'\n\n"
+            "3. TAGS (15-20 tags in the same language):\n"
+            f"   - Mix of specific tags ({clean_speaker}, sabiduria diaria, motivacion, psicologia) and top search queries.\n\n"
+            "4. CATEGORY: 'Education'.\n\n"
             f"ORIGINAL TITLE: {original_title}\n"
             f"ORIGINAL DESCRIPTION SNIPPET: {original_description[:400]}\n"
             f"SPEAKER: {clean_speaker}\n"
             f"TRANSCRIPT SNIPPET: {transcript[:500]}\n\n"
             "Output strictly valid JSON:\n"
-            "{\"title\": \"...\", \"description\": \"...\", \"tags\": [...], \"category\": \"...\"}"
+            "{\"title\": \"...\", \"description\": \"...\", \"tags\": [...], \"category\": \"Education\"}"
         )
 
         resp = client.chat.completions.create(
@@ -426,8 +453,8 @@ def spin_motivational_metadata(
 
         title = truncate_title(raw_title, max_length=70)
         desc = data.get("description", "")
-        tags = data.get("tags", [clean_speaker, "motivation", "discipline"])
-        cat = data.get("category", "People & Blogs")
+        tags = data.get("tags", [clean_speaker, "sabiduria diaria", "motivacion", "psicologia"])
+        cat = data.get("category", "Education")
 
         print(f"[metadata_generator] Spun altered title: \"{title}\" (from \"{original_title[:45]}...\")")
         return {
