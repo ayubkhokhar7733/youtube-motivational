@@ -70,36 +70,36 @@
 
     .toast {
       min-width: 280px;
-      max-width: 380px;
-      padding: 12px 16px;
-      border-radius: 10px;
+      max-width: 420px;
+      padding: 14px 18px;
+      border-radius: 12px;
       font-size: 13px;
       font-weight: 600;
       display: flex;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
       animation: slideIn 0.3s ease forwards;
       pointer-events: auto;
     }
 
     .toast-success {
-      background: rgba(16, 185, 129, 0.92);
+      background: rgba(16, 185, 129, 0.95);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     .toast-error {
-      background: rgba(239, 68, 68, 0.92);
+      background: rgba(239, 68, 68, 0.95);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     .toast-info {
-      background: rgba(37, 99, 235, 0.92);
+      background: rgba(37, 99, 235, 0.95);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     @keyframes slideIn {
@@ -947,8 +947,8 @@
       <!-- Stats Bar -->
       <div class="queue-stats-bar">
         <div class="stat-pill pill-all">📊 Total Videos: <span id="stat-total">63</span></div>
-        <div class="stat-pill pill-ready">⏳ Ready to Repurpose: <span id="stat-ready">62</span></div>
-        <div class="stat-pill pill-used">✅ Used / Published: <span id="stat-used">1</span></div>
+        <div class="stat-pill pill-ready">⏳ Ready to Repurpose: <span id="stat-ready">61</span></div>
+        <div class="stat-pill pill-used">✅ Used / Published: <span id="stat-used">2</span></div>
       </div>
 
       <!-- Search & Filters Toolbar -->
@@ -959,8 +959,8 @@
         </div>
         <div class="filter-tabs">
           <button type="button" class="filter-tab active" id="tab-all" onclick="setQueueFilter('all')">All (<span id="count-tab-all">63</span>)</button>
-          <button type="button" class="filter-tab" id="tab-ready" onclick="setQueueFilter('ready')">Ready (<span id="count-tab-ready">62</span>)</button>
-          <button type="button" class="filter-tab" id="tab-used" onclick="setQueueFilter('used')">Used (<span id="count-tab-used">1</span>)</button>
+          <button type="button" class="filter-tab" id="tab-ready" onclick="setQueueFilter('ready')">Ready (<span id="count-tab-ready">61</span>)</button>
+          <button type="button" class="filter-tab" id="tab-used" onclick="setQueueFilter('used')">Used (<span id="count-tab-used">2</span>)</button>
         </div>
       </div>
 
@@ -1078,7 +1078,7 @@
     const QUEUE_STORAGE_KEY = "sabiduria_diaria_video_queue";
 
     // Initial 63 Competitor Videos
-    const DEFAULT_VIDEO_QUEUE = [{"num": 1, "id": "10kLtJV9hr8", "title": "Every step strengthens your brain and your well-being ...", "duration": 836, "url": "https://www.youtube.com/watch?v=10kLtJV9hr8", "used": false, "used_at": null}, {"num": 2, "id": "zHsW8CTzYds", "title": "THESE PEOPLE ARE STEALING YOUR PEACE OF MIND AND YOU DON'T REALIZE IT | Nazareth Castellanos", "duration": 1362, "url": "https://www.youtube.com/watch?v=zHsW8CTzYds", "used": false, "used_at": null}, {"num": 3, "id": "qK58Up2BFw8", "title": "🔥 WHAT NOT HAVING FRIENDS REALLY MEANS ...", "duration": 1165, "url": "https://www.youtube.com/watch?v=qK58Up2BFw8", "used": false, "used_at": null}, {"num": 4, "id": "wEfwnM8TjSI", "title": "THIS IS WHAT HAPPENS WHEN YOU STOP TRYING TO CONTROL EVERYTHING ....", "duration": 1262, "url": "https://www.youtube.com/watch?v=wEfwnM8TjSI", "used": false, "used_at": null}, {"num": 5, "id": "MPZY3dcBZqk", "title": "YOUR BRAIN WILL NEVER BE THE SAME AFTER THIS ..", "duration": 932, "url": "https://www.youtube.com/watch?v=MPZY3dcBZqk", "used": false, "used_at": null}, {"num": 6, "id": "IqZwXcl504k", "title": "REGAIN YOUR MEMORY AND MENTAL CLARITY: THE NUTRIENT YOUR BRAIN NEEDS ...", "duration": 990, "url": "https://www.youtube.com/watch?v=IqZwXcl504k", "used": false, "used_at": null}, {"num": 7, "id": "Td-sNjVsMOQ", "title": "STOP LIVING IN A RUSH: HOW YOUR BRAIN REGAINS CALM AND CLARITY...", "duration": 1361, "url": "https://www.youtube.com/watch?v=Td-sNjVsMOQ", "used": false, "used_at": null}, {"num": 8, "id": "ixupW0LhuZo", "title": "THESE WORDS CAN TRANSFORM WHAT YOU HOLD WITHIN ..", "duration": 1504, "url": "https://www.youtube.com/watch?v=ixupW0LhuZo", "used": false, "used_at": null}, {"num": 9, "id": "JPDqotH4mj4", "title": "ALMOST NO ONE NOTICES THESE SIGNS IN TIME… DO YOU RECOGNIZE THEM? ....", "duration": 1310, "url": "https://www.youtube.com/watch?v=JPDqotH4mj4", "used": false, "used_at": null}, {"num": 10, "id": "J3Zj-kiGV5k", "title": "YOUR BRAIN IS ASKING FOR ATTENTION: START TAKING CARE OF IT TODAY! | Nazareth Castellanos", "duration": 912, "url": "https://www.youtube.com/watch?v=J3Zj-kiGV5k", "used": false, "used_at": null}, {"num": 11, "id": "VBpygSA4MFE", "title": "TWELVE DAYS of small changes that can transform your MIND and HABITS ......", "duration": 2699, "url": "https://www.youtube.com/watch?v=VBpygSA4MFE", "used": false, "used_at": null}, {"num": 12, "id": "os8sIE1r96Y", "title": "Train your MIND to find PEACE even on difficult days ,,", "duration": 2356, "url": "https://www.youtube.com/watch?v=os8sIE1r96Y", "used": false, "used_at": null}, {"num": 13, "id": "Qgr6YSRX4Z8", "title": "WHY DO SOME WOMEN HAVE NO FRIENDS? The Reason NO ONE Tells You ...", "duration": 902, "url": "https://www.youtube.com/watch?v=Qgr6YSRX4Z8", "used": false, "used_at": null}, {"num": 14, "id": "GN68qNTT-sk", "title": "A few MINUTES a day can make a big difference for your BRAIN HEALTH ..", "duration": 1081, "url": "https://www.youtube.com/watch?v=GN68qNTT-sk", "used": false, "used_at": null}, {"num": 15, "id": "Cwg2YSRnuKo", "title": "THIS DAILY HABIT IS DAMAGING YOUR MEMORY AND YOU MIGHT NOT EVEN NOTICE...", "duration": 1589, "url": "https://www.youtube.com/watch?v=Cwg2YSRnuKo", "used": false, "used_at": null}, {"num": 16, "id": "DXTrhiYLFPo", "title": "El verdadero PODER aparece cuando dejas de MENDIGAR aprobación y empiezas a elegir tu PAZ ..", "duration": 1080, "url": "https://www.youtube.com/watch?v=DXTrhiYLFPo", "used": false, "used_at": null}, {"num": 17, "id": "pt_xxuIpp3o", "title": "Activate your MIND, improve your concentration, and strengthen your MEMORY with simple exercises...", "duration": 960, "url": "https://www.youtube.com/watch?v=pt_xxuIpp3o", "used": false, "used_at": null}, {"num": 18, "id": "r2G_0Vy3Oug", "title": "Why you never finish what you start (and how I fixed it) ....", "duration": 2319, "url": "https://www.youtube.com/watch?v=r2G_0Vy3Oug", "used": false, "used_at": null}, {"num": 19, "id": "fz9d6BrnOYI", "title": "La verdadera FORTALEZA no está en reaccionar, sino en saber responder con INTELIGENCIA ...", "duration": 2117, "url": "https://www.youtube.com/watch?v=fz9d6BrnOYI", "used": false, "used_at": null}, {"num": 20, "id": "C-JPrH28qgQ", "title": "¿RESPIRAS LENTO DURANTE 60 SEGUNDOS? Esto le Pasa a tu CEREBRO ...", "duration": 2431, "url": "https://www.youtube.com/watch?v=C-JPrH28qgQ", "used": false, "used_at": null}, {"num": 21, "id": "z2ECEtXTzzE", "title": "¿ENTRAS A UNA HABITACIÓN Y OLVIDAS A QUÉ IBAS? Tu CEREBRO tiene una razón ..", "duration": 2328, "url": "https://www.youtube.com/watch?v=z2ECEtXTzzE", "used": false, "used_at": null}, {"num": 22, "id": "erxfUJl4CVE", "title": "These ABILITIES reveal that your BODY and BRAIN retain extraordinary STRENGTH ...", "duration": 1198, "url": "https://www.youtube.com/watch?v=erxfUJl4CVE", "used": false, "used_at": null}, {"num": 23, "id": "2u2dSsetsI4", "title": "LA NEUROCIENCIA LO REVELA: ESTÁS ENVEJECIENDO MÁS RÁPIDO Y NO TE DAS CUENTA ..", "duration": 1934, "url": "https://www.youtube.com/watch?v=2u2dSsetsI4", "used": false, "used_at": null}, {"num": 24, "id": "8TaX-8Muo0k", "title": "EL ANTIGUO SECRETO CHINO PARA FORTALECER Y RECUPERAR TUS HUESOS...", "duration": 2786, "url": "https://www.youtube.com/watch?v=8TaX-8Muo0k", "used": false, "used_at": null}, {"num": 25, "id": "OYDq42GYXi8", "title": "AFTER 70: 10 SIGNS THAT COULD REVEAL HOW MANY MORE YEARS YOU MIGHT LIVE ...", "duration": 2303, "url": "https://www.youtube.com/watch?v=OYDq42GYXi8", "used": false, "used_at": null}, {"num": 26, "id": "4aboiROXh1k", "title": "WHY YOUR BIGGEST ACHIEVEMENTS MIGHT COME AFTER 60! THE REASON WILL SURPRISE YOU!...", "duration": 2479, "url": "https://www.youtube.com/watch?v=4aboiROXh1k", "used": false, "used_at": null}, {"num": 27, "id": "3LANDzyKKXM", "title": "Tu CEREBRO empezará a cambiar antes de lo que imaginas |", "duration": 1927, "url": "https://www.youtube.com/watch?v=3LANDzyKKXM", "used": false, "used_at": null}, {"num": 28, "id": "OhshzahC4t8", "title": "AL CUMPLIR 80 AÑOS, ESTAS 8 COSAS TE PASARÁN… ¡Y NADIE TE PREPARA PARA ELLAS!", "duration": 2021, "url": "https://www.youtube.com/watch?v=OhshzahC4t8", "used": false, "used_at": null}, {"num": 29, "id": "WrZ1bmGqVaY", "title": "Are You Over 60? THIS Could Completely Change How You See Life!...", "duration": 1654, "url": "https://www.youtube.com/watch?v=WrZ1bmGqVaY", "used": false, "used_at": null}, {"num": 30, "id": "PtLKZuhqDVA", "title": "SI YA CUMPLISTE 60, DEBES LEER ESTA LISTA… CASI NADIE LO HACE", "duration": 1797, "url": "https://www.youtube.com/watch?v=PtLKZuhqDVA", "used": false, "used_at": null}, {"num": 31, "id": "pxt096wKA48", "title": "5 HÁBITOS VITALES que te MANTIENEN FUERTE después de los 60...", "duration": 2122, "url": "https://www.youtube.com/watch?v=pxt096wKA48", "used": false, "used_at": null}, {"num": 32, "id": "2z40mws_pxM", "title": "DESPUÉS DE LOS 60, NO NECESITAS NI FAMILIA NI AMIGOS… SOLO ESTE PILAR ....", "duration": 1908, "url": "https://www.youtube.com/watch?v=2z40mws_pxM", "used": false, "used_at": null}, {"num": 33, "id": "0lMj_9loeQg", "title": "LAS VERDURAS que PROTEGEN tu CEREBRO, FORTALECEN tu CUERPO y FRENAN el ENVEJECIMIENTO", "duration": 2702, "url": "https://www.youtube.com/watch?v=0lMj_9loeQg", "used": false, "used_at": null}, {"num": 34, "id": "PNQJZZ8r7go", "title": "7 PASOS que pueden REPROGRAMAR tu MENTE y CAMBIAR tu VIDA...", "duration": 2134, "url": "https://www.youtube.com/watch?v=PNQJZZ8r7go", "used": false, "used_at": null}, {"num": 35, "id": "lfIHzcp14iU", "title": "WHY YOUR BRAIN HATES DISCIPLINE: The REASON Will SURPRISE You...", "duration": 2280, "url": "https://www.youtube.com/watch?v=lfIHzcp14iU", "used": false, "used_at": null}, {"num": 36, "id": "RXeiBdO_Aps", "title": "THE HABIT that TRANSFORMS your MIND and CHANGES your LIFE ....", "duration": 2489, "url": "https://www.youtube.com/watch?v=RXeiBdO_Aps", "used": false, "used_at": null}, {"num": 37, "id": "gcgGPXFXXbI", "title": "SI YA NO PUEDES VIVIR SOLO, ¡NO VAYAS A UN ASILO! Haz Esto en Su Lugar ...", "duration": 2291, "url": "https://www.youtube.com/watch?v=gcgGPXFXXbI", "used": false, "used_at": null}, {"num": 38, "id": "Ctr9jBLf0Ys", "title": "LOS 6 ERRORES SILENCIOSOS que ESTÁN ROBANDO tu FELICIDAD después de los 60", "duration": 1965, "url": "https://www.youtube.com/watch?v=Ctr9jBLf0Ys", "used": false, "used_at": null}, {"num": 39, "id": "MFLMkuuR664", "title": "¿YA NO PUEDES VIVIR SOLO? DESCUBRE LA MEJOR ALTERNATIVA A UN ASILO", "duration": 1933, "url": "https://www.youtube.com/watch?v=MFLMkuuR664", "used": false, "used_at": null}, {"num": 40, "id": "hRdfLvICkic", "title": "WHEN YOU AGE, DON'T DEPEND ONLY ON YOUR FAMILY: DISCOVER WHAT YOU SHOULD RELY ON ...", "duration": 1318, "url": "https://www.youtube.com/watch?v=hRdfLvICkic", "used": false, "used_at": null}, {"num": 41, "id": "zbAZKT7Ncu8", "title": "Las 3 VERDURAS SECRETAS que Pueden AYUDAR a Mantenerte JOVEN ...", "duration": 2893, "url": "https://www.youtube.com/watch?v=zbAZKT7Ncu8", "used": false, "used_at": null}, {"num": 42, "id": "ciVnHIsRhtg", "title": "LOS 5 PILARES que REALMENTE NECESITAS al ENVEJECER (Y NO SON TU FAMILIA) |.....", "duration": 2493, "url": "https://www.youtube.com/watch?v=ciVnHIsRhtg", "used": false, "used_at": null}, {"num": 43, "id": "43E3x31mx7s", "title": "4 HABITS That Can SLOW DOWN Aging After 60 and 70 ..", "duration": 1946, "url": "https://www.youtube.com/watch?v=43E3x31mx7s", "used": false, "used_at": null}, {"num": 44, "id": "jjXJ0xNmqmE", "title": "In OLD AGE you need NEITHER FRIENDS NOR FAMILY: The PILLAR that truly gives you HAPPINESS |", "duration": 2276, "url": "https://www.youtube.com/watch?v=jjXJ0xNmqmE", "used": false, "used_at": null}, {"num": 45, "id": "s7jqUf6Th1A", "title": "Tu VERDADERO PODER comienza cuando DEJAS de buscar aprobación y eliges tu PAZ..", "duration": 1082, "url": "https://www.youtube.com/watch?v=s7jqUf6Th1A", "used": false, "used_at": null}, {"num": 46, "id": "FuiqrcFJ0XE", "title": "If You Are Over 60, Do These 5 EXERCISES Instead of Walking....", "duration": 2369, "url": "https://www.youtube.com/watch?v=FuiqrcFJ0XE", "used": false, "used_at": null}, {"num": 47, "id": "5FXXlPKCxS4", "title": "CUANDO CONFÍAS EN DIOS, ENCUENTRAS UNA PAZ QUE NADIE PUEDE QUITAR", "duration": 1183, "url": "https://www.youtube.com/watch?v=5FXXlPKCxS4", "used": false, "used_at": null}, {"num": 48, "id": "xJtjAbVNJjo", "title": "¿Por Qué los Grandes Logros Llegan Después de los 60?....", "duration": 2479, "url": "https://www.youtube.com/watch?v=xJtjAbVNJjo", "used": false, "used_at": null}, {"num": 49, "id": "iHng3JBjy0c", "title": "¿POR QUÉ LOS GRANDES LOGROS LLEGAN DESPUÉS DE LOS 60? ....", "duration": 2479, "url": "https://www.youtube.com/watch?v=iHng3JBjy0c", "used": false, "used_at": null}, {"num": 50, "id": "Mja_0x5HRdA", "title": "El Ejercicio de 60 Segundos que Puede Reducir tu Presión Arterial ...", "duration": 905, "url": "https://www.youtube.com/watch?v=Mja_0x5HRdA", "used": false, "used_at": null}, {"num": 51, "id": "Q_LgE4kPCcE", "title": "La Inquietante Verdad de las Personas que Prefieren Estar en Casa...", "duration": 2299, "url": "https://www.youtube.com/watch?v=Q_LgE4kPCcE", "used": false, "used_at": null}, {"num": 52, "id": "3fy9XTV8BX4", "title": "Los 4 Hábitos que Retrasan el Envejecimiento Después de los 60 y 70...", "duration": 2299, "url": "https://www.youtube.com/watch?v=3fy9XTV8BX4", "used": false, "used_at": null}, {"num": 53, "id": "3m9Cex4Ojv4", "title": "LOS 6 PRINCIPIOS QUE TE AYUDARÁN A VIVIR UNA VEJEZ FELIZ Y FUERTE", "duration": 1360, "url": "https://www.youtube.com/watch?v=3m9Cex4Ojv4", "used": false, "used_at": null}, {"num": 54, "id": "ITgxee3SEQU", "title": "¿QUÉ SUCEDE EN TU CEREBRO CUANDO ESCRIBES? LA NEUROCIENCIA TIENE LA RESPUESTA...", "duration": 1669, "url": "https://www.youtube.com/watch?v=ITgxee3SEQU", "used": false, "used_at": null}, {"num": 55, "id": "6R7gXVdTakg", "title": "NEUROLOGIST REVEALS THE 1-MINUTE EXERCISE THAT BOOSTS YOUR MEMORY...", "duration": 2603, "url": "https://www.youtube.com/watch?v=6R7gXVdTakg", "used": false, "used_at": null}, {"num": 56, "id": "OBOjNd-PnFU", "title": "The 5 Pillars You Need to Age Well (And They Aren't Your Family)", "duration": 2012, "url": "https://www.youtube.com/watch?v=OBOjNd-PnFU", "used": false, "used_at": null}, {"num": 57, "id": "y1cGEagzjxI", "title": "La verdadera fortaleza mental nace cuando sueltas lo que no puedes controlar", "duration": 1359, "url": "https://www.youtube.com/watch?v=y1cGEagzjxI", "used": false, "used_at": null}, {"num": 58, "id": "OGgvq4qDvy4", "title": "¿Estás cometiendo un error todos los días que perjudica tu memoria?", "duration": 2322, "url": "https://www.youtube.com/watch?v=OGgvq4qDvy4", "used": false, "used_at": null}, {"num": 59, "id": "YV7eDmtYYn8", "title": "What happens to your brain if you rub your hands together for 30 seconds? ..", "duration": 2439, "url": "https://www.youtube.com/watch?v=YV7eDmtYYn8", "used": false, "used_at": null}, {"num": 60, "id": "NqYK_eq9mNQ", "title": "Why Do You Forget What You Just Read? The Neuroscientific Truth", "duration": 1549, "url": "https://www.youtube.com/watch?v=NqYK_eq9mNQ", "used": false, "used_at": null}, {"num": 61, "id": "BuUH3G8Ei3Y", "title": "¿Qué pasa con tu memoria si aprietas los puños durante 30 segundos? | Neurociencia", "duration": 2466, "url": "https://www.youtube.com/watch?v=BuUH3G8Ei3Y", "used": false, "used_at": null}, {"num": 62, "id": "zHN06tLznU8", "title": "¿Por qué olvidas lo que ibas a hacer al entrar en una habitación? | La neurociencia lo explica", "duration": 2329, "url": "https://www.youtube.com/watch?v=zHN06tLznU8", "used": false, "used_at": null}, {"num": 63, "id": "x5HEdogVSn4", "title": "¿Qué pasa en tu cerebro si presionas entre las cejas durante 30 segundos?", "duration": 2459, "url": "https://www.youtube.com/watch?v=x5HEdogVSn4", "used": true, "used_at": "2026-10-06 14:42"}];
+    const DEFAULT_VIDEO_QUEUE = [{"num": 1, "id": "10kLtJV9hr8", "title": "Every step strengthens your brain and your well-being ...", "duration": 836, "url": "https://www.youtube.com/watch?v=10kLtJV9hr8", "used": false, "used_at": null}, {"num": 2, "id": "zHsW8CTzYds", "title": "THESE PEOPLE ARE STEALING YOUR PEACE OF MIND AND YOU DON'T REALIZE IT | Nazareth Castellanos", "duration": 1362, "url": "https://www.youtube.com/watch?v=zHsW8CTzYds", "used": false, "used_at": null}, {"num": 3, "id": "qK58Up2BFw8", "title": "🔥 WHAT NOT HAVING FRIENDS REALLY MEANS ...", "duration": 1165, "url": "https://www.youtube.com/watch?v=qK58Up2BFw8", "used": false, "used_at": null}, {"num": 4, "id": "wEfwnM8TjSI", "title": "THIS IS WHAT HAPPENS WHEN YOU STOP TRYING TO CONTROL EVERYTHING ....", "duration": 1262, "url": "https://www.youtube.com/watch?v=wEfwnM8TjSI", "used": false, "used_at": null}, {"num": 5, "id": "MPZY3dcBZqk", "title": "YOUR BRAIN WILL NEVER BE THE SAME AFTER THIS ..", "duration": 932, "url": "https://www.youtube.com/watch?v=MPZY3dcBZqk", "used": false, "used_at": null}, {"num": 6, "id": "IqZwXcl504k", "title": "REGAIN YOUR MEMORY AND MENTAL CLARITY: THE NUTRIENT YOUR BRAIN NEEDS ...", "duration": 990, "url": "https://www.youtube.com/watch?v=IqZwXcl504k", "used": true, "used_at": "2026-10-07 10:55"}, {"num": 7, "id": "Td-sNjVsMOQ", "title": "STOP LIVING IN A RUSH: HOW YOUR BRAIN REGAINS CALM AND CLARITY...", "duration": 1361, "url": "https://www.youtube.com/watch?v=Td-sNjVsMOQ", "used": false, "used_at": null}, {"num": 8, "id": "ixupW0LhuZo", "title": "THESE WORDS CAN TRANSFORM WHAT YOU HOLD WITHIN ..", "duration": 1504, "url": "https://www.youtube.com/watch?v=ixupW0LhuZo", "used": false, "used_at": null}, {"num": 9, "id": "JPDqotH4mj4", "title": "ALMOST NO ONE NOTICES THESE SIGNS IN TIME… DO YOU RECOGNIZE THEM? ....", "duration": 1310, "url": "https://www.youtube.com/watch?v=JPDqotH4mj4", "used": false, "used_at": null}, {"num": 10, "id": "J3Zj-kiGV5k", "title": "YOUR BRAIN IS ASKING FOR ATTENTION: START TAKING CARE OF IT TODAY! | Nazareth Castellanos", "duration": 912, "url": "https://www.youtube.com/watch?v=J3Zj-kiGV5k", "used": false, "used_at": null}, {"num": 11, "id": "VBpygSA4MFE", "title": "TWELVE DAYS of small changes that can transform your MIND and HABITS ......", "duration": 2699, "url": "https://www.youtube.com/watch?v=VBpygSA4MFE", "used": false, "used_at": null}, {"num": 12, "id": "os8sIE1r96Y", "title": "Train your MIND to find PEACE even on difficult days ,,", "duration": 2356, "url": "https://www.youtube.com/watch?v=os8sIE1r96Y", "used": false, "used_at": null}, {"num": 13, "id": "Qgr6YSRX4Z8", "title": "WHY DO SOME WOMEN HAVE NO FRIENDS? The Reason NO ONE Tells You ...", "duration": 902, "url": "https://www.youtube.com/watch?v=Qgr6YSRX4Z8", "used": false, "used_at": null}, {"num": 14, "id": "GN68qNTT-sk", "title": "A few MINUTES a day can make a big difference for your BRAIN HEALTH ..", "duration": 1081, "url": "https://www.youtube.com/watch?v=GN68qNTT-sk", "used": false, "used_at": null}, {"num": 15, "id": "Cwg2YSRnuKo", "title": "THIS DAILY HABIT IS DAMAGING YOUR MEMORY AND YOU MIGHT NOT EVEN NOTICE...", "duration": 1589, "url": "https://www.youtube.com/watch?v=Cwg2YSRnuKo", "used": false, "used_at": null}, {"num": 16, "id": "DXTrhiYLFPo", "title": "El verdadero PODER aparece cuando dejas de MENDIGAR aprobación y empiezas a elegir tu PAZ ..", "duration": 1080, "url": "https://www.youtube.com/watch?v=DXTrhiYLFPo", "used": false, "used_at": null}, {"num": 17, "id": "pt_xxuIpp3o", "title": "Activate your MIND, improve your concentration, and strengthen your MEMORY with simple exercises...", "duration": 960, "url": "https://www.youtube.com/watch?v=pt_xxuIpp3o", "used": false, "used_at": null}, {"num": 18, "id": "r2G_0Vy3Oug", "title": "Why you never finish what you start (and how I fixed it) ....", "duration": 2319, "url": "https://www.youtube.com/watch?v=r2G_0Vy3Oug", "used": false, "used_at": null}, {"num": 19, "id": "fz9d6BrnOYI", "title": "La verdadera FORTALEZA no está en reaccionar, sino en saber responder con INTELIGENCIA ...", "duration": 2117, "url": "https://www.youtube.com/watch?v=fz9d6BrnOYI", "used": false, "used_at": null}, {"num": 20, "id": "C-JPrH28qgQ", "title": "¿RESPIRAS LENTO DURANTE 60 SEGUNDOS? Esto le Pasa a tu CEREBRO ...", "duration": 2431, "url": "https://www.youtube.com/watch?v=C-JPrH28qgQ", "used": false, "used_at": null}, {"num": 21, "id": "z2ECEtXTzzE", "title": "¿ENTRAS A UNA HABITACIÓN Y OLVIDAS A QUÉ IBAS? Tu CEREBRO tiene una razón ..", "duration": 2328, "url": "https://www.youtube.com/watch?v=z2ECEtXTzzE", "used": false, "used_at": null}, {"num": 22, "id": "erxfUJl4CVE", "title": "These ABILITIES reveal that your BODY and BRAIN retain extraordinary STRENGTH ...", "duration": 1198, "url": "https://www.youtube.com/watch?v=erxfUJl4CVE", "used": false, "used_at": null}, {"num": 23, "id": "2u2dSsetsI4", "title": "LA NEUROCIENCIA LO REVELA: ESTÁS ENVEJECIENDO MÁS RÁPIDO Y NO TE DAS CUENTA ..", "duration": 1934, "url": "https://www.youtube.com/watch?v=2u2dSsetsI4", "used": false, "used_at": null}, {"num": 24, "id": "8TaX-8Muo0k", "title": "EL ANTIGUO SECRETO CHINO PARA FORTALECER Y RECUPERAR TUS HUESOS...", "duration": 2786, "url": "https://www.youtube.com/watch?v=8TaX-8Muo0k", "used": false, "used_at": null}, {"num": 25, "id": "OYDq42GYXi8", "title": "AFTER 70: 10 SIGNS THAT COULD REVEAL HOW MANY MORE YEARS YOU MIGHT LIVE ...", "duration": 2303, "url": "https://www.youtube.com/watch?v=OYDq42GYXi8", "used": false, "used_at": null}, {"num": 26, "id": "4aboiROXh1k", "title": "WHY YOUR BIGGEST ACHIEVEMENTS MIGHT COME AFTER 60! THE REASON WILL SURPRISE YOU!...", "duration": 2479, "url": "https://www.youtube.com/watch?v=4aboiROXh1k", "used": false, "used_at": null}, {"num": 27, "id": "3LANDzyKKXM", "title": "Tu CEREBRO empezará a cambiar antes de lo que imaginas |", "duration": 1927, "url": "https://www.youtube.com/watch?v=3LANDzyKKXM", "used": false, "used_at": null}, {"num": 28, "id": "OhshzahC4t8", "title": "AL CUMPLIR 80 AÑOS, ESTAS 8 COSAS TE PASARÁN… ¡Y NADIE TE PREPARA PARA ELLAS!", "duration": 2021, "url": "https://www.youtube.com/watch?v=OhshzahC4t8", "used": false, "used_at": null}, {"num": 29, "id": "WrZ1bmGqVaY", "title": "Are You Over 60? THIS Could Completely Change How You See Life!...", "duration": 1654, "url": "https://www.youtube.com/watch?v=WrZ1bmGqVaY", "used": false, "used_at": null}, {"num": 30, "id": "PtLKZuhqDVA", "title": "SI YA CUMPLISTE 60, DEBES LEER ESTA LISTA… CASI NADIE LO HACE", "duration": 1797, "url": "https://www.youtube.com/watch?v=PtLKZuhqDVA", "used": false, "used_at": null}, {"num": 31, "id": "pxt096wKA48", "title": "5 HÁBITOS VITALES que te MANTIENEN FUERTE después de los 60...", "duration": 2122, "url": "https://www.youtube.com/watch?v=pxt096wKA48", "used": false, "used_at": null}, {"num": 32, "id": "2z40mws_pxM", "title": "DESPUÉS DE LOS 60, NO NECESITAS NI FAMILIA NI AMIGOS… SOLO ESTE PILAR ....", "duration": 1908, "url": "https://www.youtube.com/watch?v=2z40mws_pxM", "used": false, "used_at": null}, {"num": 33, "id": "0lMj_9loeQg", "title": "LAS VERDURAS que PROTEGEN tu CEREBRO, FORTALECEN tu CUERPO y FRENAN el ENVEJECIMIENTO", "duration": 2702, "url": "https://www.youtube.com/watch?v=0lMj_9loeQg", "used": false, "used_at": null}, {"num": 34, "id": "PNQJZZ8r7go", "title": "7 PASOS que pueden REPROGRAMAR tu MENTE y CAMBIAR tu VIDA...", "duration": 2134, "url": "https://www.youtube.com/watch?v=PNQJZZ8r7go", "used": false, "used_at": null}, {"num": 35, "id": "lfIHzcp14iU", "title": "WHY YOUR BRAIN HATES DISCIPLINE: The REASON Will SURPRISE You...", "duration": 2280, "url": "https://www.youtube.com/watch?v=lfIHzcp14iU", "used": false, "used_at": null}, {"num": 36, "id": "RXeiBdO_Aps", "title": "THE HABIT that TRANSFORMS your MIND and CHANGES your LIFE ....", "duration": 2489, "url": "https://www.youtube.com/watch?v=RXeiBdO_Aps", "used": false, "used_at": null}, {"num": 37, "id": "gcgGPXFXXbI", "title": "SI YA NO PUEDES VIVIR SOLO, ¡NO VAYAS A UN ASILO! Haz Esto en Su Lugar ...", "duration": 2291, "url": "https://www.youtube.com/watch?v=gcgGPXFXXbI", "used": false, "used_at": null}, {"num": 38, "id": "Ctr9jBLf0Ys", "title": "LOS 6 ERRORES SILENCIOSOS que ESTÁN ROBANDO tu FELICIDAD después de los 60", "duration": 1965, "url": "https://www.youtube.com/watch?v=Ctr9jBLf0Ys", "used": false, "used_at": null}, {"num": 39, "id": "MFLMkuuR664", "title": "¿YA NO PUEDES VIVIR SOLO? DESCUBRE LA MEJOR ALTERNATIVA A UN ASILO", "duration": 1933, "url": "https://www.youtube.com/watch?v=MFLMkuuR664", "used": false, "used_at": null}, {"num": 40, "id": "hRdfLvICkic", "title": "WHEN YOU AGE, DON'T DEPEND ONLY ON YOUR FAMILY: DISCOVER WHAT YOU SHOULD RELY ON ...", "duration": 1318, "url": "https://www.youtube.com/watch?v=hRdfLvICkic", "used": false, "used_at": null}, {"num": 41, "id": "zbAZKT7Ncu8", "title": "Las 3 VERDURAS SECRETAS que Pueden AYUDAR a Mantenerte JOVEN ...", "duration": 2893, "url": "https://www.youtube.com/watch?v=zbAZKT7Ncu8", "used": false, "used_at": null}, {"num": 42, "id": "ciVnHIsRhtg", "title": "LOS 5 PILARES que REALMENTE NECESITAS al ENVEJECER (Y NO SON TU FAMILIA) |.....", "duration": 2493, "url": "https://www.youtube.com/watch?v=ciVnHIsRhtg", "used": false, "used_at": null}, {"num": 43, "id": "43E3x31mx7s", "title": "4 HABITS That Can SLOW DOWN Aging After 60 and 70 ..", "duration": 1946, "url": "https://www.youtube.com/watch?v=43E3x31mx7s", "used": false, "used_at": null}, {"num": 44, "id": "jjXJ0xNmqmE", "title": "In OLD AGE you need NEITHER FRIENDS NOR FAMILY: The PILLAR that truly gives you HAPPINESS |", "duration": 2276, "url": "https://www.youtube.com/watch?v=jjXJ0xNmqmE", "used": false, "used_at": null}, {"num": 45, "id": "s7jqUf6Th1A", "title": "Tu VERDADERO PODER comienza cuando DEJAS de buscar aprobación y eliges tu PAZ..", "duration": 1082, "url": "https://www.youtube.com/watch?v=s7jqUf6Th1A", "used": false, "used_at": null}, {"num": 46, "id": "FuiqrcFJ0XE", "title": "If You Are Over 60, Do These 5 EXERCISES Instead of Walking....", "duration": 2369, "url": "https://www.youtube.com/watch?v=FuiqrcFJ0XE", "used": false, "used_at": null}, {"num": 47, "id": "5FXXlPKCxS4", "title": "CUANDO CONFÍAS EN DIOS, ENCUENTRAS UNA PAZ QUE NADIE PUEDE QUITAR", "duration": 1183, "url": "https://www.youtube.com/watch?v=5FXXlPKCxS4", "used": false, "used_at": null}, {"num": 48, "id": "xJtjAbVNJjo", "title": "¿Por Qué los Grandes Logros Llegan Después de los 60?....", "duration": 2479, "url": "https://www.youtube.com/watch?v=xJtjAbVNJjo", "used": false, "used_at": null}, {"num": 49, "id": "iHng3JBjy0c", "title": "¿POR QUÉ LOS GRANDES LOGROS LLEGAN DESPUÉS DE LOS 60? ....", "duration": 2479, "url": "https://www.youtube.com/watch?v=iHng3JBjy0c", "used": false, "used_at": null}, {"num": 50, "id": "Mja_0x5HRdA", "title": "El Ejercicio de 60 Segundos que Puede Reducir tu Presión Arterial ...", "duration": 905, "url": "https://www.youtube.com/watch?v=Mja_0x5HRdA", "used": false, "used_at": null}, {"num": 51, "id": "Q_LgE4kPCcE", "title": "La Inquietante Verdad de las Personas que Prefieren Estar en Casa...", "duration": 2299, "url": "https://www.youtube.com/watch?v=Q_LgE4kPCcE", "used": false, "used_at": null}, {"num": 52, "id": "3fy9XTV8BX4", "title": "Los 4 Hábitos que Retrasan el Envejecimiento Después de los 60 y 70...", "duration": 2299, "url": "https://www.youtube.com/watch?v=3fy9XTV8BX4", "used": false, "used_at": null}, {"num": 53, "id": "3m9Cex4Ojv4", "title": "LOS 6 PRINCIPIOS QUE TE AYUDARÁN A VIVIR UNA VEJEZ FELIZ Y FUERTE", "duration": 1360, "url": "https://www.youtube.com/watch?v=3m9Cex4Ojv4", "used": false, "used_at": null}, {"num": 54, "id": "ITgxee3SEQU", "title": "¿QUÉ SUCEDE EN TU CEREBRO CUANDO ESCRIBES? LA NEUROCIENCIA TIENE LA RESPUESTA...", "duration": 1669, "url": "https://www.youtube.com/watch?v=ITgxee3SEQU", "used": false, "used_at": null}, {"num": 55, "id": "6R7gXVdTakg", "title": "NEUROLOGIST REVEALS THE 1-MINUTE EXERCISE THAT BOOSTS YOUR MEMORY...", "duration": 2603, "url": "https://www.youtube.com/watch?v=6R7gXVdTakg", "used": false, "used_at": null}, {"num": 56, "id": "OBOjNd-PnFU", "title": "The 5 Pillars You Need to Age Well (And They Aren't Your Family)", "duration": 2012, "url": "https://www.youtube.com/watch?v=OBOjNd-PnFU", "used": false, "used_at": null}, {"num": 57, "id": "y1cGEagzjxI", "title": "La verdadera fortaleza mental nace cuando sueltas lo que no puedes controlar", "duration": 1359, "url": "https://www.youtube.com/watch?v=y1cGEagzjxI", "used": false, "used_at": null}, {"num": 58, "id": "OGgvq4qDvy4", "title": "¿Estás cometiendo un error todos los días que perjudica tu memoria?", "duration": 2322, "url": "https://www.youtube.com/watch?v=OGgvq4qDvy4", "used": false, "used_at": null}, {"num": 59, "id": "YV7eDmtYYn8", "title": "What happens to your brain if you rub your hands together for 30 seconds? ..", "duration": 2439, "url": "https://www.youtube.com/watch?v=YV7eDmtYYn8", "used": false, "used_at": null}, {"num": 60, "id": "NqYK_eq9mNQ", "title": "Why Do You Forget What You Just Read? The Neuroscientific Truth", "duration": 1549, "url": "https://www.youtube.com/watch?v=NqYK_eq9mNQ", "used": false, "used_at": null}, {"num": 61, "id": "BuUH3G8Ei3Y", "title": "¿Qué pasa con tu memoria si aprietas los puños durante 30 segundos? | Neurociencia", "duration": 2466, "url": "https://www.youtube.com/watch?v=BuUH3G8Ei3Y", "used": false, "used_at": null}, {"num": 62, "id": "zHN06tLznU8", "title": "¿Por qué olvidas lo que ibas a hacer al entrar en una habitación? | La neurociencia lo explica", "duration": 2329, "url": "https://www.youtube.com/watch?v=zHN06tLznU8", "used": false, "used_at": null}, {"num": 63, "id": "x5HEdogVSn4", "title": "¿Qué pasa en tu cerebro si presionas entre las cejas durante 30 segundos?", "duration": 2459, "url": "https://www.youtube.com/watch?v=x5HEdogVSn4", "used": true, "used_at": "2026-10-07 10:55"}];
 
     let currentFilter = "all";
 
@@ -1100,7 +1100,7 @@
         toast.style.transform = "translateX(100%)";
         toast.style.transition = "all 0.3s ease";
         setTimeout(() => toast.remove(), 300);
-      }, 4000);
+      }, 5000);
     }
 
     // 2. PIN Lock Logic
@@ -1268,32 +1268,29 @@
     }
 
     // One-Click Repurpose Video Function
-    async function startRepurposeVideo(url, title, id) {
-      // 1. Fill URL in form
-      document.getElementById("youtube_url").value = url;
-      
-      // 2. Mark as Used immediately with timestamp
-      const q = getQueue();
-      const item = q.find(v => v.id === id);
-      if (item) {
-        item.used = true;
-        item.used_at = new Date().toLocaleString();
-        saveQueue(q);
-      }
-
-      // 3. Dispatch to GitHub Actions
-      showToast(`🚀 Launching cloud runner for: "${title.substring(0, 35)}..."`, "info");
-      
+    async function startRepurposeVideo(url, title, id, btnEl) {
       const token = getToken();
       if (!token) {
-        showToast("Please save your GitHub token first!", "error");
+        showToast("⚠️ Please enter & save your GitHub Token at the top of the dashboard first!", "error");
+        document.getElementById("token_input").scrollIntoView({ behavior: 'smooth', block: 'center' });
         document.getElementById("token_input").focus();
         return;
       }
 
-      const duration = document.getElementById("clip_duration").value;
-      const uploadYt = document.getElementById("opt_upload_yt").checked;
-      const privacy = document.getElementById("upload_privacy").value;
+      // 1. Fill URL in form
+      document.getElementById("youtube_url").value = url;
+      
+      const origText = btnEl ? btnEl.innerHTML : "";
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = "⏳ Launching...";
+      }
+
+      showToast(`🚀 Sending cloud repurposing request for: "${title.substring(0, 30)}..."`, "info");
+
+      const duration = document.getElementById("clip_duration") ? document.getElementById("clip_duration").value : "0";
+      const uploadYt = document.getElementById("opt_upload_yt") ? document.getElementById("opt_upload_yt").checked : true;
+      const privacy = document.getElementById("upload_privacy") ? document.getElementById("upload_privacy").value : "private";
 
       try {
         const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_FILE}/dispatches`, {
@@ -1306,28 +1303,47 @@
           body: JSON.stringify({
             ref: "main",
             inputs: {
-              youtube_url: url,
+              youtube_url: String(url),
               speaker_name: "",
               speaker_image: "",
-              aspect: selectedAspect,
-              duration: duration,
-              upload: uploadYt,
-              privacy: privacy,
-              audio_only: false,
-              dry_run: false
+              aspect: selectedAspect || "landscape",
+              duration: String(duration || "0"),
+              upload: uploadYt ? "true" : "false",
+              privacy: String(privacy || "private"),
+              audio_only: "false",
+              dry_run: "false"
             }
           })
         });
 
         if (res.status === 204) {
-          showToast("🎉 Pipeline launched! Cloud runner is now processing video.", "success");
+          showToast("🎉 Cloud runner started successfully! Video is rendering & uploading.", "success");
+          
+          // Mark as Used now that GitHub accepted the job
+          const q = getQueue();
+          const item = q.find(v => v.id === id || v.url === url);
+          if (item) {
+            item.used = true;
+            item.used_at = new Date().toLocaleString();
+            saveQueue(q);
+          }
+
           setTimeout(fetchRuns, 2500);
         } else {
-          const err = await res.json();
-          showToast("Launch error: " + (err.message || res.statusText), "error");
+          let errMsg = res.statusText;
+          try {
+            const errJson = await res.json();
+            errMsg = errJson.message || errMsg;
+          } catch(e) {}
+          showToast("❌ GitHub Dispatch Error: " + errMsg, "error");
         }
       } catch (err) {
         showToast("Network Error: " + err.message, "error");
+      } finally {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.innerHTML = origText || "🚀 One-Click Repurpose";
+        }
       }
     }
 
@@ -1400,7 +1416,7 @@
                 </button>
               </div>
 
-              <button type="button" class="btn-repurpose-now" onclick="startRepurposeVideo('${item.url}', '${item.title.replace(/'/g, "\'")}', '${item.id}')">
+              <button type="button" class="btn-repurpose-now" onclick="startRepurposeVideo('${item.url}', '${item.title.replace(/'/g, "\'")}', '${item.id}', this)">
                 🚀 One-Click Repurpose
               </button>
             </div>
@@ -1422,7 +1438,8 @@
       e.preventDefault();
       const token = getToken();
       if (!token) {
-        showToast("Please enter and save your GitHub Token first!", "error");
+        showToast("⚠️ Please enter and save your GitHub Token at the top of the page first!", "error");
+        document.getElementById("token_input").scrollIntoView({ behavior: 'smooth', block: 'center' });
         document.getElementById("token_input").focus();
         return;
       }
@@ -1448,15 +1465,15 @@
           body: JSON.stringify({
             ref: "main",
             inputs: {
-              youtube_url: url,
-              speaker_name: speaker,
+              youtube_url: String(url),
+              speaker_name: String(speaker || ""),
               speaker_image: "",
-              aspect: selectedAspect,
-              duration: duration,
-              upload: uploadYt,
-              privacy: privacy,
-              audio_only: false,
-              dry_run: false
+              aspect: selectedAspect || "landscape",
+              duration: String(duration || "0"),
+              upload: uploadYt ? "true" : "false",
+              privacy: String(privacy || "private"),
+              audio_only: "false",
+              dry_run: "false"
             }
           })
         });
@@ -1476,8 +1493,12 @@
           document.getElementById("youtube_url").value = "";
           setTimeout(fetchRuns, 3000);
         } else {
-          const err = await res.json();
-          showToast("Launch failed: " + (err.message || res.statusText), "error");
+          let errMsg = res.statusText;
+          try {
+            const errJson = await res.json();
+            errMsg = errJson.message || errMsg;
+          } catch(e) {}
+          showToast("❌ Launch failed: " + errMsg, "error");
         }
       } catch (err) {
         showToast("Network Error: " + err.message, "error");
