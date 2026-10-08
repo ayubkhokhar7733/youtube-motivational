@@ -312,7 +312,11 @@ def upload_video(
     if not clean_tags:
         clean_tags = ["history", "science", "facts", "documentary", "did you know"]
 
-    cat_id = category_id or CATEGORY_MAPPING.get(category.lower(), "25")
+    cat_id = category_id or CATEGORY_MAPPING.get(str(category).lower(), "27")
+
+    # Detect language (Spanish 'es' vs English 'en')
+    is_spanish = bool(re.search(r'[áéíóúñ¿¡]', f"{clean_title} {description}", re.IGNORECASE)) or any(w in f" {clean_title.lower()} " for w in [" en ", " de ", " la ", " el ", " tu ", " que ", " como ", " para ", " mente ", " cerebro ", " vida "])
+    lang_code = "es" if is_spanish else "en"
 
     # Video resource body
     body = {
@@ -321,8 +325,8 @@ def upload_video(
             "description": description.strip(),
             "tags": clean_tags,
             "categoryId": cat_id,
-            "defaultLanguage": "en",
-            "defaultAudioLanguage": "en",
+            "defaultLanguage": lang_code,
+            "defaultAudioLanguage": lang_code,
         },
         "status": {
             "privacyStatus": privacy_status,
