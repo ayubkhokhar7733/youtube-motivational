@@ -91,6 +91,8 @@ def get_youtube_client(client_id: str = None, client_secret: str = None, refresh
             "to generate YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, and YOUTUBE_REFRESH_TOKEN."
         )
 
+    import google.auth.transport.requests
+
     creds = Credentials(
         token=None,
         refresh_token=rtoken,
@@ -103,6 +105,13 @@ def get_youtube_client(client_id: str = None, client_secret: str = None, refresh
             "https://www.googleapis.com/auth/youtube.force-ssl",
         ],
     )
+
+    try:
+        req_adapter = google.auth.transport.requests.Request()
+        creds.refresh(req_adapter)
+        print("🔑 Successfully refreshed & verified YouTube OAuth token.")
+    except Exception as e:
+        print(f"⚠️ Warning during explicit OAuth token refresh: {e}")
 
     return googleapiclient.discovery.build("youtube", "v3", credentials=creds)
 
@@ -367,7 +376,17 @@ def upload_video(
                 progress = int(status.progress() * 100)
                 print(f"   📤 Upload progress: {progress}% ...", flush=True)
         except googleapiclient.errors.HttpError as e:
-            if e.resp.status in RETRIABLE_STATUS_CODES:
+            if e.resp.status == 401 and retry_count < 3:
+                retry_count += 1
+                print(f"⚠️ Received 401 Unauthorized during upload chunk. Refreshing OAuth token and retrying (attempt {retry_count})...")
+                try:
+                    import google.auth.transport.requests
+                    if hasattr(creds, "refresh"):
+                        creds.refresh(google.auth.transport.requests.Request())
+                except Exception as ref_err:
+                    print(f"⚠️ Token refresh error: {ref_err}")
+                time.sleep(2)
+            elif e.resp.status in RETRIABLE_STATUS_CODES:
                 retry_count += 1
                 if retry_count > MAX_RETRIES:
                     raise Exception(f"Upload failed after {MAX_RETRIES} retries. HTTP error: {e}")
