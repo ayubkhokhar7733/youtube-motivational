@@ -244,13 +244,24 @@ def extract_shorts(
         out_filepath = os.path.join(output_dir, out_filename)
 
         # Metadata for this Short
-        short_title = f"{segment_hook[:55]} #Shorts"
-        short_desc = (
-            f"{segment_hook}. Did you know this fascinating detail about {base_topic}?\n\n"
-            f"Watch the full story on our channel! Subscribe for daily history & science facts.\n\n"
-            f"#Shorts #History #Science #Facts #DidYouKnow"
-        )
-        short_tags = ["Shorts", "YouTubeShorts", "History", "Science", "DidYouKnow", "Facts", base_topic.lower()]
+        is_spanish = bool(re.search(r'[áéíóúñ¿¡]', f"{base_topic} {segment_hook}", re.IGNORECASE)) or any(w in f" {base_topic.lower()} " for w in [" en ", " de ", " la ", " el ", " tu ", " que ", " como ", " para ", " mente ", " cerebro ", " vida "])
+
+        if is_spanish:
+            short_title = f"{segment_hook[:55]} #Shorts"
+            short_desc = (
+                f"{segment_hook}\n\n"
+                f"Suscríbete a Sabiduría Diaria para tu dosis diaria de psicología, motivación y lecciones de vida.\n\n"
+                f"#Shorts #SabiduriaDiaria #Motivacion #Psicologia #DesarrolloPersonal #Neurociencia"
+            )
+            short_tags = ["Shorts", "YouTubeShorts", "SabiduriaDiaria", "Motivacion", "Psicologia", "DesarrolloPersonal", base_topic.lower()[:30]]
+        else:
+            short_title = f"{segment_hook[:55]} #Shorts"
+            short_desc = (
+                f"{segment_hook}\n\n"
+                f"Subscribe to Sabiduría Diaria for daily life lessons and mindset wisdom.\n\n"
+                f"#Shorts #Motivation #Mindset #Wisdom"
+            )
+            short_tags = ["Shorts", "YouTubeShorts", "Motivation", "Mindset", "Wisdom", base_topic.lower()[:30]]
 
         item_meta = {
             "index": idx,
