@@ -416,7 +416,9 @@ def generate_speaker_badge_overlay(
     """
     if not output_path:
         output_path = os.path.join(config.TEMP_DIR, "speaker_badge_overlay.png")
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    out_dir = os.path.dirname(output_path)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
 
     canvas = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
@@ -433,6 +435,11 @@ def generate_speaker_badge_overlay(
     role_text = (speaker_role or "Mente • Disciplina • Crecimiento").strip()
 
     # ── 1. Bottom-Left Speaker Cutout Placement ─────────────────────────────
+    if not avatar_image_path:
+        default_asset = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "speaker_cutout.png")
+        if os.path.exists(default_asset):
+            avatar_image_path = default_asset
+
     cutout_img = None
     if avatar_image_path:
         try:

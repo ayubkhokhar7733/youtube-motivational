@@ -374,7 +374,15 @@ def run_pipeline(
                 "total_elapsed_sec": round(total_elapsed, 2),
             }
 
-        avatar_src = speaker_image or yt_data.get("thumbnail_url")
+        # Resolve speaker image: explicit image -> default assets/speaker_cutout.png (NEVER old competitor thumbnail)
+        default_cutout_path = os.path.join(os.path.dirname(__file__), "assets", "speaker_cutout.png")
+        if speaker_image:
+            avatar_src = speaker_image
+        elif os.path.exists(default_cutout_path):
+            avatar_src = default_cutout_path
+        else:
+            avatar_src = None
+
         speaker_badge_overlay = youtube_extractor.generate_speaker_badge_overlay(
             speaker_name=detected_speaker,
             speaker_role=speaker_role,
