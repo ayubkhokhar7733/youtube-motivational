@@ -407,6 +407,11 @@ def spin_motivational_metadata(
             "speaker_name": clean_speaker,
         }
 
+    is_generic_speaker = clean_speaker.lower() in (
+        "motivational speaker", "motivational leader", "inspirational leader",
+        "sabiduría diaria", "sabiduria diaria", "unknown", "orador motivacional"
+    )
+
     if mock or not api_key or api_key.startswith("gsk_placeholder") or "your_" in api_key:
         return _fallback_spin()
 
@@ -414,13 +419,19 @@ def spin_motivational_metadata(
         from openai import OpenAI
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
 
+        title_rule = (
+            "   - DO NOT prefix the title with 'Motivational Speaker:' or any generic label. Format directly as a powerful, intriguing curiosity hook (e.g. 'Deja de Buscar la Aprobación de los Demás y Recupera Tu Paz', 'Por Qué Nunca Terminas Lo Que Empiezas').\n"
+            if is_generic_speaker
+            else f"   - Format as: '{clean_speaker}: [Punchy Hook / Insight]'\n"
+        )
+
         prompt = (
             "You are an elite YouTube SEO strategist specializing in high-performing educational & motivational self-improvement channels (like Sabiduría Diaria, Mente Inteligente, Motiversity).\n"
             "IMPORTANT: Detect the source language. If the source title or transcript is in Spanish, ALL output (title, description, tags) MUST BE IN SPANISH (Español). If English, output in English.\n"
             "Given the original video title, description, and transcript snippet below, generate:\n\n"
             "1. TITLE (50-68 characters max):\n"
             "   - Re-write the original title to be distinct, captivating, and fresh, targeting viewer curiosity, psychology, or mindset.\n"
-            f"   - If speaker is known and recognized, format as: '{clean_speaker}: [Punchy Hook / Insight]'\n"
+            f"{title_rule}"
             "   - Clean formatting: Capitalize First Letters, no ALL CAPS, no emojis.\n"
             "   - High CTR, direct, intriguing, urgent.\n\n"
             "2. DESCRIPTION (150-250 words in the same language):\n"
@@ -430,7 +441,7 @@ def spin_motivational_metadata(
             "   - Add 3-4 lines of natural search queries for people seeking mental clarity, discipline, and personal growth.\n"
             "   - End with: 'Suscríbete a Sabiduría Diaria para tu dosis de aprendizaje y motivación.'\n\n"
             "3. TAGS (15-20 tags in the same language):\n"
-            f"   - Mix of specific tags ({clean_speaker}, sabiduria diaria, motivacion, psicologia) and top search queries.\n\n"
+            f"   - Mix of specific tags (sabiduria diaria, motivacion, psicologia, mente) and top search queries.\n\n"
             "4. CATEGORY: 'Education'.\n\n"
             f"ORIGINAL TITLE: {original_title}\n"
             f"ORIGINAL DESCRIPTION SNIPPET: {original_description[:400]}\n"
@@ -448,12 +459,14 @@ def spin_motivational_metadata(
         )
         data = json.loads(resp.choices[0].message.content.strip())
         raw_title = data.get("title", "")
-        if not raw_title:
-            return _fallback_spin()
+        if is_generic_speaker:
+            raw_title = re.sub(r'^(motivational\s+(?:speaker|leader|speech)\s*[:\-–—]\s*)', '', raw_title, flags=re.IGNORECASE).strip()
+            raw_title = re.sub(r'^(sabidur[ií]a\s+diaria\s*[:\-–—]\s*)', '', raw_title, flags=re.IGNORECASE).strip()
+            raw_title = re.sub(r'^(orador\s+motivacional\s*[:\-–—]\s*)', '', raw_title, flags=re.IGNORECASE).strip()
 
         title = truncate_title(raw_title, max_length=70)
         desc = data.get("description", "")
-        tags = data.get("tags", [clean_speaker, "sabiduria diaria", "motivacion", "psicologia"])
+        tags = data.get("tags", ["sabiduria diaria", "motivacion", "psicologia", "mente"])
         cat = data.get("category", "Education")
 
         print(f"[metadata_generator] Spun altered title: \"{title}\" (from \"{original_title[:45]}...\")")
