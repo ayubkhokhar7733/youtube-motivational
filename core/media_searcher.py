@@ -57,13 +57,15 @@ def search_videos_pixabay(query, per_page=5):
     if not config.PIXABAY_API_KEY:
         print("[media-searcher] [WARN] PIXABAY_API_KEY is not configured or empty!")
         return []
+    import random
     pix_orient, _ = _api_orientation()
     params = {
         "key":         config.PIXABAY_API_KEY,
         "q":           query,
         "video_type":  "all",
         "orientation": pix_orient,
-        "per_page":    max(3, per_page),
+        "per_page":    max(6, per_page + 4),
+        "page":        random.randint(1, 3),
         "safesearch":  "true",
     }
     try:
@@ -71,7 +73,9 @@ def search_videos_pixabay(query, per_page=5):
         if resp.status_code == 200:
             urls = []
             target_w = 1280 if config.VIDEO_WIDTH > config.VIDEO_HEIGHT else 720
-            for hit in resp.json().get("hits", []):
+            hits = resp.json().get("hits", [])
+            random.shuffle(hits)
+            for hit in hits:
                 videos = hit.get("videos", {})
                 available = []
                 for quality in ("medium", "small", "large", "tiny"):
@@ -97,15 +101,19 @@ def search_videos_pexels(query, per_page=5):
     if not config.PEXELS_API_KEY:
         print("[media-searcher] [WARN] PEXELS_API_KEY is not configured or empty!")
         return []
+    import random
     _, pex_orient = _api_orientation()
     headers = {"Authorization": config.PEXELS_API_KEY}
-    params  = {"query": query, "per_page": max(1, per_page), "orientation": pex_orient, "size": "medium"}
+    page = random.randint(1, 3)
+    params  = {"query": query, "per_page": max(6, per_page + 4), "page": page, "orientation": pex_orient, "size": "medium"}
     try:
         resp = _session.get(PEXELS_VIDEO_URL, headers=headers, params=params, timeout=12)
         if resp.status_code == 200:
             urls = []
             target_w = 1280 if config.VIDEO_WIDTH > config.VIDEO_HEIGHT else 720
-            for vid in resp.json().get("videos", []):
+            vids = resp.json().get("videos", [])
+            random.shuffle(vids)
+            for vid in vids:
                 files = vid.get("video_files", [])
                 if files:
                     files_sorted = sorted(files, key=lambda f: abs(f.get("width", 0) - target_w))
@@ -128,13 +136,15 @@ def search_videos_pexels(query, per_page=5):
 def search_images_pixabay(query, per_page=5):
     if not config.PIXABAY_API_KEY:
         return []
+    import random
     pix_orient, _ = _api_orientation()
     params = {
         "key":         config.PIXABAY_API_KEY,
         "q":           query,
         "image_type":  "photo",
         "orientation": pix_orient,
-        "per_page":    max(3, per_page),
+        "per_page":    max(6, per_page + 4),
+        "page":        random.randint(1, 3),
         "safesearch":  "true",
         "min_width":   1280,
         "min_height":  720,
@@ -143,7 +153,9 @@ def search_images_pixabay(query, per_page=5):
         resp = _session.get(PIXABAY_URL, params=params, timeout=12)
         if resp.status_code == 200:
             urls = []
-            for hit in resp.json().get("hits", []):
+            hits = resp.json().get("hits", [])
+            random.shuffle(hits)
+            for hit in hits:
                 img_url = hit.get("largeImageURL") or hit.get("webformatURL")
                 if img_url:
                     urls.append(img_url)
@@ -158,14 +170,23 @@ def search_images_pixabay(query, per_page=5):
 def search_images_pexels(query, per_page=5):
     if not config.PEXELS_API_KEY:
         return []
+    import random
     _, pex_orient = _api_orientation()
     headers = {"Authorization": config.PEXELS_API_KEY}
-    params  = {"query": query, "per_page": max(1, per_page), "orientation": pex_orient, "size": "large"}
+    params  = {
+        "query": query,
+        "per_page": max(6, per_page + 4),
+        "page": random.randint(1, 3),
+        "orientation": pex_orient,
+        "size": "large"
+    }
     try:
         resp = _session.get(PEXELS_URL, headers=headers, params=params, timeout=12)
         if resp.status_code == 200:
             urls = []
-            for photo in resp.json().get("photos", []):
+            photos = resp.json().get("photos", [])
+            random.shuffle(photos)
+            for photo in photos:
                 src = photo.get("src", {})
                 img_url = src.get("large") or src.get("large2x") or src.get("original")
                 if img_url:
@@ -303,33 +324,53 @@ NOISE_WORDS = {
 }
 
 MOTIVATIONAL_QUERY_BANK = [
-    "athlete workout gym",
-    "runner sprinting sunrise",
-    "boxer training heavy bag",
-    "mountain climber summit",
-    "focused person study work",
-    "calisthenics pullups back",
-    "city skyline night timelapse",
-    "deadlift barbell powerlifting",
-    "man walking rain city",
-    "swimmer racing pool",
-    "cyclist road mountain",
-    "morning routine coffee focus",
-    "meditation yoga peaceful nature",
-    "businessman skyscraper office",
-    "marathon runners finish line",
-    "dramatic stormy ocean waves",
-    "sunrise clouds horizon cinematic",
-    "basketball training court night",
-    "weightlifting dumbell press workout",
-    "crossfit athlete training hard",
-    "trail runner forest mist",
-    "ice bath cold plunge recovery",
-    "climbing rope gym military",
-    "stretching athlete stadium lights",
-    "boxer wrapped hands focus",
-    "fast running shoes track",
-    "deep breathing athlete meditate"
+    # Neuroscience & Cognitive Science
+    "brain neurons glowing neural network",
+    "abstract glowing neural synapses 3d",
+    "deep thought eyes close up thinking",
+    "futuristic digital brain scan glowing",
+    "particles of light floating abstract mind",
+    # Nature, Serenity & Elements
+    "misty pine forest morning sunlight rays",
+    "peaceful ocean waves slow motion sunset",
+    "mountain lake mirror water reflection calm",
+    "gentle river flowing through rocks forest",
+    "clouds passing over mountain summit timelapse",
+    "autumn leaves falling golden park sunlight",
+    "green moss forest trees sunbeams",
+    # Habits, Mindfulness & Routine
+    "morning routine coffee sunlight steam kitchen",
+    "person writing journal notebook fountain pen",
+    "reading hardcover book desk lamp focus",
+    "architect drawing blueprint desk workspace",
+    "artist painting canvas studio quiet",
+    "chess board pieces strategic thinking",
+    "pouring hot tea wooden table peaceful",
+    "deep breathing woman peaceful nature calm",
+    "morning meditation calm lake misty water",
+    # Movement & Walking
+    "feet walking along forest path autumn leaves",
+    "woman walking in scenic green park morning",
+    "person walking wooden pier calm ocean",
+    "man walking mountain ridge silhouette sunset",
+    "gentle morning stretch yoga terrace sunrise",
+    # Human Connection & Contemplation
+    "person looking at horizon ocean view calm",
+    "warm smiling face gentle eyes sunlight",
+    "close up hands holding warm ceramic cup",
+    "hourglass sand flowing sunlight desk",
+    "clock pendulum swinging slow motion",
+    "old library books shelves dust particles",
+    "hands touching warm sunlight close up",
+    # Vitality & Energy
+    "runner morning trail mist sunrise",
+    "athlete deep breathing cold mountain air",
+    "cyclist road morning green valley",
+    "swimmer underwater calm clear blue",
+    "campfire burning embers night slow motion",
+    "sunrise breaking through dark clouds dramatic",
+    "water drops falling on green leaf macro",
+    "person standing atop hill looking at sunrise",
 ]
 
 
@@ -339,6 +380,7 @@ def extract_visual_search_queries(raw_kw: str, narration: str, topic: str, scene
     to ensure stock libraries return highly relevant footage rather than celebratory/unrelated clips.
     """
     import re
+    import hashlib
     queries = []
 
     # 1. Clean raw keywords
@@ -346,16 +388,18 @@ def extract_visual_search_queries(raw_kw: str, narration: str, topic: str, scene
     clean_kw = [w for w in words if w not in NOISE_WORDS and len(w) > 2]
     
     if clean_kw:
-        primary_q = " ".join(clean_kw[:3])
+        primary_q = " ".join(clean_kw[:4])
         if primary_q and primary_q not in queries:
             queries.append(primary_q)
 
-    # 2. Add cycling motivational query from the rich bank
-    cycling_q = MOTIVATIONAL_QUERY_BANK[scene_index % len(MOTIVATIONAL_QUERY_BANK)]
+    # 2. Add cycling query with deterministic topic-based offset so different videos never cycle the same clips
+    seed_offset = int(hashlib.md5((topic or "").encode("utf-8")).hexdigest()[:6], 16) if topic else 0
+    cycling_idx = (scene_index + seed_offset) % len(MOTIVATIONAL_QUERY_BANK)
+    cycling_q = MOTIVATIONAL_QUERY_BANK[cycling_idx]
     if cycling_q not in queries:
         queries.append(cycling_q)
 
-    next_cycling_q = MOTIVATIONAL_QUERY_BANK[(scene_index + 7) % len(MOTIVATIONAL_QUERY_BANK)]
+    next_cycling_q = MOTIVATIONAL_QUERY_BANK[(cycling_idx + 13) % len(MOTIVATIONAL_QUERY_BANK)]
     if next_cycling_q not in queries:
         queries.append(next_cycling_q)
 

@@ -278,31 +278,202 @@ def generate_script(topic, max_retries=3):
 
 
 # ---------------------------------------------------------------------------
-# Transcript to Motivational Visual Scenes Converter
+# Transcript to Motivational Visual Scenes Converter (Context-Aware)
 # ---------------------------------------------------------------------------
 
-MOTIVATIONAL_VISUAL_KEYWORDS = [
-    "athlete workout gym barbell sweat",
-    "man running rain night street",
-    "shadow boxing heavy bag training",
-    "mountain climber summit cliff sunrise",
-    "focused eyes intense look close up",
-    "calisthenics pullups muscular back",
-    "solitary runner empty highway fog",
-    "boxing gloves wrapped hands focus",
-    "storm clouds dark lightning timelapse",
-    "man looking at city skyline night",
-    "running stadium stairs exhaustion push",
-    "stopwatch timer track athlete sprint",
-    "deadlift chalk barbell powerlifting",
-    "cold shower morning discipline routine",
-    "heavy ocean waves storm rough sea",
-    "man walking alone woods misty dawn",
-    "fire embers glowing dark slow motion",
-    "basketball player shooting empty court night",
-    "military training obstacle mud soldier",
-    "deep breathing athlete meditate focus",
+import hashlib
+import random
+
+CONTEXT_KEYWORD_RULES = [
+    # Brain, neuroscience, mind, thoughts
+    (r"\b(cerebro|cerebral|neurona|neuronas|sinapsis|neurociencia|materia gris)\b", [
+        "brain neurons glowing neural network",
+        "synaptic transmission glowing impulses 3d",
+        "human brain scan cognitive activity",
+        "microscopic neurons firing electricity",
+        "abstract glowing thoughts human mind",
+        "particles light connecting brain network"
+    ]),
+    (r"\b(pensamiento|pensamientos|mente|mental|cognitiv|ideas?)\b", [
+        "person thoughtful deep thinking close up",
+        "silhouette person thinking window light",
+        "calm mind contemplation peaceful eyes",
+        "abstract glowing thoughts human mind",
+        "man reflecting standing overlooking city"
+    ]),
+    # Breathing, lungs, oxygen, calm, meditation
+    (r"\b(respirar?|respiraci[oó]n|inhala|exhala|pulm[oó]n|aire|ox[ií]geno)\b", [
+        "deep breathing woman peaceful nature calm",
+        "person taking deep breath fresh forest air",
+        "chest expanding deep breath sunrise",
+        "calm ocean waves gentle slow motion",
+        "sunlight through green leaves gentle breeze"
+    ]),
+    (r"\b(medita|meditaci[oó]n|calma|paz|serenidad|tranquil|silencio)\b", [
+        "morning meditation calm lake misty water",
+        "woman sitting peaceful meditation garden",
+        "zen stone balancing tranquil water reflection",
+        "serene mountain valley morning mist",
+        "gentle candle flame slow motion quiet room"
+    ]),
+    (r"\b(estr[eé]s|ansiedad|angustia|preocupaci[oó]n|nervios?|agota)\b", [
+        "person looking window rain thoughtful calm",
+        "tired person resting head hands table relief",
+        "storm clouds clearing blue sky sunlight",
+        "person washing face fresh cold water",
+        "walking away from crowd into quiet nature"
+    ]),
+    # Walking, steps, movement, posture
+    (r"\b(camin|caminar?|caminata|pasos?|marcha|sender)\b", [
+        "person walking forest trail morning sunlight",
+        "feet walking along autumn path leaves",
+        "woman walking in scenic green park morning",
+        "path through tall trees sunlight morning",
+        "person walking wooden pier calm ocean horizon"
+    ]),
+    (r"\b(postura|espalda|cuerpo|f[ií]sico|movimiento|estir)\b", [
+        "gentle morning stretch yoga terrace sunrise",
+        "person standing tall confident morning sun",
+        "spine posture alignment wellness outdoor",
+        "slow body movement tai chi peaceful park"
+    ]),
+    # Hands, gestures, touch, face
+    (r"\b(manos?|dedos?|frotar?|palmas?|tacto|tocar?)\b", [
+        "hands touching warm sunlight close up",
+        "person rubbing hands together warmth focus",
+        "hands holding warm ceramic cup steam",
+        "gentle hand touching green plant leaves"
+    ]),
+    (r"\b(entrecejo|frente|cejas?|rostro|cara|ojos?)\b", [
+        "close up eyes looking forward concentration",
+        "person gently touching forehead relaxing tension",
+        "warm smiling face gentle eyes sunlight",
+        "eyes opening calm morning light"
+    ]),
+    # Reading, books, memory, learning
+    (r"\b(leer?|lectura|libros?|leerlo|p[aá]ginas?|biblioteca)\b", [
+        "reading old book library warm sunlight",
+        "fingers turning page book close up",
+        "person reading novel cozy armchair lamp",
+        "stack vintage books sunlight dust motes"
+    ]),
+    (r"\b(memoria|recordar?|recuerdo|olvid|olvidas?|olvido|aprender?)\b", [
+        "hourglass sand flowing time sunlight desk",
+        "vintage clock pendulum swinging slow motion",
+        "memories photo album turning pages",
+        "light beam illuminating old wooden study",
+        "vintage pocket watch ticking slow motion"
+    ]),
+    (r"\b(estudi|atenci[oó]n|enfoque|concentraci[oó]n)\b", [
+        "person working desk lamp notebook focus",
+        "architect drawing blueprint desk workspace",
+        "student studying quiet library desk",
+        "chess player analyzing board strategy"
+    ]),
+    # Sleeping, night, rest
+    (r"\b(dormir?|sue[ñn]o|descans|noche|acostar?)\b", [
+        "peaceful bedroom night window soft lamp",
+        "sleeping calm bedroom morning sunlight",
+        "stars night sky milky way timelapse",
+        "sunset turning into calm peaceful twilight"
+    ]),
+    # Nutrition, gut, food, water
+    (r"\b(comer?|aliment|comida|nutrici[oó]n|nutriente|dieta|intestino)\b", [
+        "healthy fresh food fruits vegetables kitchen",
+        "hands preparing colorful fresh salad",
+        "fresh berries walnuts organic bowl wooden table",
+        "green smoothie pouring glass kitchen"
+    ]),
+    (r"\b(agua|beber?|hidrataci[oó]n|vaso)\b", [
+        "pouring clear fresh water glass sunlight table",
+        "person drinking glass water morning refreshing",
+        "clear mountain stream pure water splashing",
+        "water droplets falling pure glass macro"
+    ]),
+    # Habits, routine, discipline
+    (r"\b(h[aá]bitos?|rutina|disciplina|constancia|ma[ñn]ana)\b", [
+        "morning routine coffee journal notebook writing",
+        "person waking early making bed sunlight",
+        "writing daily goals notebook pen wooden desk",
+        "organized desk clean workspace sunlight"
+    ]),
+    (r"\b(tiempo|edad|a[ñn]os|vejez|envejecer|rejuvenecer|60|vida)\b", [
+        "healthy older person smiling walking nature",
+        "active mature woman smiling sunlight garden",
+        "older couple walking park holding hands",
+        "sun setting golden horizon wisdom"
+    ]),
+    # Relationships, solitude, social
+    (r"\b(amig[oa]s?|amistad|soledad|relaci[oó]n|social|aprobaci[oó]n)\b", [
+        "person walking alone autumn park trees reflection",
+        "two friends talking smiling cafe table",
+        "person standing alone cliff looking ocean peace",
+        "warm embrace conversation friends authentic"
+    ]),
+    # Nature, weather, environment
+    (r"\b(naturaleza|bosque|mar|playa|monta[ñn]a|sol|amanecer)\b", [
+        "scenic mountains sunrise mist pine forest",
+        "golden sunlight filtering through tall green trees",
+        "waves crashing rocky coastline slow motion",
+        "panoramic view mountain range horizon clouds"
+    ]),
+    (r"\b(coraz[oó]n|emoci[oó]n|emociones|sentir|sentimiento)\b", [
+        "sunrise horizon peaceful chest breathing slow motion",
+        "person hand on heart feeling gratitude outdoor",
+        "warm sunlight glowing through chest silhouette",
+        "calm water ripples heart reflection"
+    ]),
 ]
+
+EXPANDED_VISUAL_BANK = [
+    # Neuroscience & Mind
+    "brain neurons glowing neural network",
+    "abstract glowing neural synapses 3d",
+    "deep thought eyes close up thinking",
+    "futuristic digital brain scan glowing",
+    "particles of light floating abstract mind",
+    # Nature & Peace
+    "misty pine forest morning sunlight rays",
+    "peaceful ocean waves slow motion sunset",
+    "mountain lake mirror water reflection calm",
+    "gentle river flowing through rocks forest",
+    "clouds passing over mountain summit timelapse",
+    "autumn leaves falling golden park sunlight",
+    "green moss forest trees sunbeams",
+    # Habits, Routine & Focus
+    "morning coffee sunlight steam kitchen",
+    "person writing journal notebook fountain pen",
+    "reading hardcover book desk lamp focus",
+    "architect drawing blueprint desk workspace",
+    "artist painting canvas studio quiet",
+    "chess board pieces strategic thinking",
+    "pouring hot tea wooden table peaceful",
+    # Movement & Walking
+    "feet walking along forest path autumn leaves",
+    "woman walking in scenic green park morning",
+    "person walking wooden pier calm ocean",
+    "man walking mountain ridge silhouette sunset",
+    "gentle morning stretch yoga terrace sunrise",
+    # Human Contemplation
+    "person looking at horizon ocean view calm",
+    "warm smiling face gentle eyes sunlight",
+    "close up hands holding warm ceramic cup",
+    "hourglass sand flowing sunlight desk",
+    "clock pendulum swinging slow motion",
+    "old library books shelves dust particles",
+    # Energy, Vitality & Inspiration
+    "runner morning trail mist sunrise",
+    "athlete deep breathing cold mountain air",
+    "cyclist road morning green valley",
+    "swimmer underwater calm clear blue",
+    "campfire burning embers night slow motion",
+    "sunrise breaking through dark clouds dramatic",
+    "water drops falling on green leaf macro",
+    "person standing atop hill looking at sunrise",
+]
+
+# Legacy alias for backwards compatibility
+MOTIVATIONAL_VISUAL_KEYWORDS = EXPANDED_VISUAL_BANK
 
 
 def segment_transcript_to_scenes(transcript: str, total_duration: float, title: str = "Motivational Speech", speaker_name: str = "") -> dict:
@@ -310,6 +481,10 @@ def segment_transcript_to_scenes(transcript: str, total_duration: float, title: 
     Takes a transcribed motivational speech and divides it into dynamic visual scene beats
     with physical visual keywords tailored for stock footage sourcing (Pexels / Pixabay).
     Matches 100% of the total_duration.
+    
+    Guarantees:
+      1. Scene visual keywords match what the speaker is actually discussing (context-aware).
+      2. Deterministic video hash seed so no two videos start with or share the same clip order.
     """
     import config
     config.reload()
@@ -319,23 +494,31 @@ def segment_transcript_to_scenes(transcript: str, total_duration: float, title: 
     scene_count = max(4, int(total_duration / scene_dur))
     actual_dur_per_scene = total_duration / scene_count
 
+    # Deterministic seed per video to guarantee unique opening and distinct sequence
+    seed_str = f"{title}_{speaker_name}_{round(total_duration)}"
+    video_seed = int(hashlib.md5(seed_str.encode("utf-8")).hexdigest()[:8], 16)
+    rng = random.Random(video_seed)
+
+    # Create shuffled visual bank for this video
+    video_visual_bank = list(EXPANDED_VISUAL_BANK)
+    rng.shuffle(video_visual_bank)
+
     # Split transcript into sentences or clauses
     raw_sentences = [s.strip() for s in re.split(r'[.!?]+', transcript) if s.strip()]
     if not raw_sentences:
         raw_sentences = [transcript or "Stay disciplined, stay focused, and never give up."]
 
-    # Group sentences into scene buckets
     scenes = []
     sent_idx = 0
     words = transcript.split()
     words_per_bucket = max(5, int(len(words) / scene_count)) if words else 10
 
     current_time = 0.0
-    for i in range(scene_count):
-        # Pick motivational visual keyword pool
-        kw_idx = i % len(MOTIVATIONAL_VISUAL_KEYWORDS)
-        kw = MOTIVATIONAL_VISUAL_KEYWORDS[kw_idx]
+    last_kw = None
+    bank_idx = 0
+    used_kws = set()
 
+    for i in range(scene_count):
         # Extract text snippet for this beat
         chunk_words = []
         while sent_idx < len(raw_sentences) and len(" ".join(chunk_words).split()) < words_per_bucket:
@@ -343,6 +526,41 @@ def segment_transcript_to_scenes(transcript: str, total_duration: float, title: 
             sent_idx += 1
 
         narration_text = " ".join(chunk_words) if chunk_words else (raw_sentences[i % len(raw_sentences)])
+
+        # 1. Check for context-aware keyword match from what is spoken
+        matched_candidates = None
+        for pattern, visual_query in CONTEXT_KEYWORD_RULES:
+            if re.search(pattern, narration_text, re.IGNORECASE):
+                if isinstance(visual_query, (list, tuple)):
+                    matched_candidates = list(visual_query)
+                else:
+                    matched_candidates = [str(visual_query)]
+                break
+
+        kw = None
+        if matched_candidates:
+            # Pick a candidate that hasn't been used yet in this video if possible
+            fresh_candidates = [c for c in matched_candidates if c not in used_kws]
+            if fresh_candidates:
+                kw = rng.choice(fresh_candidates)
+            else:
+                diff_candidates = [c for c in matched_candidates if c != last_kw]
+                kw = rng.choice(diff_candidates) if diff_candidates else matched_candidates[0]
+        else:
+            # 2. If no direct match, draw from this video's unique shuffled bank
+            attempts = 0
+            while attempts < len(video_visual_bank):
+                candidate = video_visual_bank[bank_idx % len(video_visual_bank)]
+                bank_idx += 1
+                attempts += 1
+                if candidate != last_kw:
+                    kw = candidate
+                    break
+            if not kw:
+                kw = video_visual_bank[i % len(video_visual_bank)]
+
+        last_kw = kw
+        used_kws.add(kw)
 
         # Ensure last scene reaches exact total_duration
         if i == scene_count - 1:
