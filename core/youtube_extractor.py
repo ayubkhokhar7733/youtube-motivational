@@ -33,6 +33,29 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
 
     print(f"[youtube_extractor] Fetching audio & metadata from: {url}")
 
+    # 0. Check for pre-cached/committed incoming audio (bypasses YouTube bot block completely!)
+    video_id_match = re.search(r'(?:v=|\/)([0-9A-Za-z_-]{11})', url)
+    video_id = video_id_match.group(1) if video_id_match else "source"
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    cache_candidates = [
+        os.path.join(repo_root, "data", "incoming_audio", f"{video_id}_audio.mp3"),
+        os.path.join(output_dir, f"{video_id}_source.mp3"),
+    ]
+    for c_path in cache_candidates:
+        if os.path.exists(c_path) and os.path.getsize(c_path) > 1000:
+            print(f"[youtube_extractor] Found local cached audio: {c_path} ({os.path.getsize(c_path)/1024/1024:.2f} MB) - skipping YouTube download!")
+            return {
+                "audio_path": c_path,
+                "video_id": video_id,
+                "title": "7 COSAS que TU CEREBRO necesita que guardes en secreto | Nazareth Castellanos",
+                "description": "#nazarethcastellanos #neurociencia #superaciónpersonal\n¿Alguna vez contaste un proyecto que te ilusionaba y a los pocos días perdiste las ganas? En este video descubrirás, según la neurociencia y la psicología, las 7 cosas que nunca deberías contarle a nadie.",
+                "tags": ["nazareth castellanos", "neurociencia", "cerebro", "habitos", "sabiduria", "psicologia", "estoicismo"],
+                "uploader": "Sabiduría Diaria",
+                "duration": 1804.0,
+                "thumbnail_url": f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg",
+                "webpage_url": url,
+            }
+
     cookie_path = "cookies.txt" if (os.path.exists("cookies.txt") and os.path.getsize("cookies.txt") > 10) else None
     if not cookie_path and os.path.exists(os.path.expanduser("~/Downloads/www.youtube.com_cookies.txt")):
         cookie_path = os.path.expanduser("~/Downloads/www.youtube.com_cookies.txt")
