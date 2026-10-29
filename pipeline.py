@@ -501,11 +501,29 @@ def run_pipeline(
     log("🖼️ Generating high-CTR thumbnail...")
     thumb_start = time.time()
     badge_label = detected_speaker.upper() if (url and detected_speaker) else metadata.get("category", "MOTIVATION")
-    thumbnail_path = thumbnail_gen.generate_thumbnail(
-        topic=final_youtube_title or topic,
-        background_image_path=best_bg_image,
-        badge_text=badge_label,
-    )
+    
+    thumbnail_path = None
+    if "nazareth" in (detected_speaker or "").lower() and os.path.exists(os.path.join(config.ASSETS_DIR, "clean_armchair_plate.jpg")):
+        try:
+            from generate_winning_armchair_thumb import render_winning_thumbnail
+            thumb_name = f"thumb_{re.sub(r'[^a-zA-Z0-9]+', '_', final_youtube_title or 'video')[:35].lower()}.jpg"
+            thumb_target_path = os.path.join(config.OUTPUT_DIR, thumb_name)
+            thumbnail_path = render_winning_thumbnail(
+                line1="NO HABLES",
+                line2="DE TU VIDA",
+                speaker_badge="DRA. NAZARETH CASTELLANOS",
+                output_filename=thumb_target_path
+            )
+            log(f"✅ Generated high-CTR armchair thumbnail: {thumbnail_path}")
+        except Exception as e:
+            log(f"⚠️ Custom armchair thumb warning: {e}")
+
+    if not thumbnail_path or not os.path.exists(thumbnail_path):
+        thumbnail_path = thumbnail_gen.generate_thumbnail(
+            topic=final_youtube_title or topic,
+            background_image_path=best_bg_image,
+            badge_text=badge_label,
+        )
     thumb_time = time.time() - thumb_start
     log(f"✅ Thumbnail ready in {thumb_time:.1f}s: {thumbnail_path}")
 
