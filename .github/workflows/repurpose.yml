@@ -101,7 +101,7 @@ jobs:
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
         run: |
           if [ -n "$YOUTUBE_COOKIES" ]; then
-            echo "$YOUTUBE_COOKIES" > cookies.txt
+            printf "%s\n" "$YOUTUBE_COOKIES" | sed '1s/^\xef\xbb\xbf//' > cookies.txt
             echo "✅ Loaded YouTube authentication cookies"
           fi
 
