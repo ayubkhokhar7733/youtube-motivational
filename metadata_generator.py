@@ -346,11 +346,11 @@ def spin_motivational_metadata(
     def _fallback_spin():
         if is_spanish:
             templates = [
-                f"{clean_speaker}: La Verdad Que Nadie Te Dice",
-                f"{clean_speaker}: La Regla Que Cambia Todo",
-                f"{clean_speaker}: Por Qué el 99% Fracasa (Corrige Esto)",
-                f"{clean_speaker}: Haz Esto y Tu Mente Cambiará Para Siempre",
-                f"{clean_speaker}: La Dura Realidad del Éxito y la Disciplina",
+                f"La Verdad Sobre Tu Mente Que Nadie Te Cuenta | {clean_speaker}",
+                f"La Regla Neurocientífica Que Cambia Tu Cerebro | {clean_speaker}",
+                f"Por Qué el 99% Pierde Su Enfoque Mental | {clean_speaker}",
+                f"Haz Esto Con Tu Mente y Cambiarás Para Siempre | {clean_speaker}",
+                f"Lo Que Tu Cerebro Necesita Que Guardes en Secreto | {clean_speaker}",
             ]
             spun_title = truncate_title(random.choice(templates), max_length=70)
             spun_desc = (
@@ -374,11 +374,11 @@ def spin_motivational_metadata(
             ]
         else:
             templates = [
-                f"{clean_speaker}: The Uncomfortable Truth Nobody Wants To Hear",
-                f"{clean_speaker}: The One Rule That Changes Everything",
-                f"{clean_speaker}: Why 99% Of People Never Succeed (Fix This)",
-                f"{clean_speaker}: Do This Every Morning And Watch Your Life Change",
-                f"{clean_speaker}: The Brutal Reality Of Success And Discipline",
+                f"The Uncomfortable Truth Nobody Wants To Hear | {clean_speaker}",
+                f"The One Rule That Changes Your Mind Forever | {clean_speaker}",
+                f"Why 99% Of People Lose Their Mental Focus | {clean_speaker}",
+                f"Do This For Your Brain And Watch Your Life Change | {clean_speaker}",
+                f"What Your Brain Needs You To Keep Secret | {clean_speaker}",
             ]
             spun_title = truncate_title(random.choice(templates), max_length=70)
             spun_desc = (
@@ -420,28 +420,34 @@ def spin_motivational_metadata(
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
 
         title_rule = (
-            "   - DO NOT prefix the title with 'Motivational Speaker:' or any generic label. Format directly as a powerful, intriguing curiosity hook (e.g. 'Deja de Buscar la Aprobación de los Demás y Recupera Tu Paz', 'Por Qué Nunca Terminas Lo Que Empiezas').\n"
-            if is_generic_speaker
-            else f"   - Format as: '{clean_speaker}: [Punchy Hook / Insight]'\n"
+            "   - MANDATORY TITLE STRUCTURE:\n"
+            "     * NEVER start the title with the speaker's name or a colon (DO NOT write 'Speaker: Hook' or 'Nazareth Castellanos: ...').\n"
+            "     * ALWAYS put the psychological curiosity hook / lesson / question FIRST for maximum mobile CTR.\n"
+            f"     * Place the speaker at the end separated by a pipe ' | ', format: '[Curiosity Hook / Number of Secrets / Question] | {clean_speaker}'\n"
+            f"     * If the original title contains a high-performing hook (e.g. '7 COSAS que TU CEREBRO necesita que guardes en secreto'), PRESERVE that proven core phrasing!\n"
+            "     * Example: '7 COSAS que TU CEREBRO necesita que guardes en secreto | Nazareth Castellanos'\n"
+            "     * Example: 'Por Qué Olvidas Todo lo que Lees Según la Ciencia | Nazareth Castellanos'\n"
+            "     * Max length: 70-78 characters total so it fits on YouTube mobile feeds.\n"
         )
 
         prompt = (
             "You are an elite YouTube SEO strategist specializing in high-performing educational & motivational self-improvement channels (like Sabiduría Diaria, Mente Inteligente, Motiversity).\n"
             "IMPORTANT: Detect the source language. If the source title or transcript is in Spanish, ALL output (title, description, tags) MUST BE IN SPANISH (Español). If English, output in English.\n"
             "Given the original video title, description, and transcript snippet below, generate:\n\n"
-            "1. TITLE (50-68 characters max):\n"
-            "   - Re-write the original title to be distinct, captivating, and fresh, targeting viewer curiosity, psychology, or mindset.\n"
+            "1. TITLE (50-78 characters max):\n"
+            "   - Re-write or optimize the original title for maximum CTR and curiosity gap.\n"
             f"{title_rule}"
-            "   - Clean formatting: Capitalize First Letters, no ALL CAPS, no emojis.\n"
+            "   - Clean formatting: Capitalize First Letters, no all-caps sentences, no emojis.\n"
             "   - High CTR, direct, intriguing, urgent.\n\n"
             "2. DESCRIPTION (150-250 words in the same language):\n"
-            "   - First 2 sentences must hook the viewer and summarize the core psychological or life lesson.\n"
-            "   - Highlight a powerful quote extracted from the transcript.\n"
-            f"   - Give clear editorial credit: 'Voz / Orador: {clean_speaker}'.\n"
-            "   - Add 3-4 lines of natural search queries for people seeking mental clarity, discipline, and personal growth.\n"
-            "   - End with: 'Suscríbete a Sabiduría Diaria para tu dosis de aprendizaje y motivación.'\n\n"
+            f"   - Line 1 MUST be 3-4 top niche hashtags: #{clean_speaker.lower().replace(' ', '')} #neurociencia #superacionpersonal #sabiduriadiaria\n"
+            "   - Next 2-3 sentences: An irresistible hook explaining why the viewer must watch, summarizing the core insight.\n"
+            "   - Highlight a powerful quote extracted from the transcript in quotes.\n"
+            f"   - Editorial credit: 'Voz / Orador: {clean_speaker}'.\n"
+            "   - Add 3-4 bullet lines answering common search queries (e.g. ¿Cómo mantener la motivación?, Técnicas para proteger tu energía mental).\n"
+            "   - End with: 'Suscríbete a Sabiduría Diaria para tu dosis de aprendizaje, neurociencia y motivación.'\n\n"
             "3. TAGS (15-20 tags in the same language):\n"
-            f"   - Mix of specific tags (sabiduria diaria, motivacion, psicologia, mente) and top search queries.\n\n"
+            f"   - Mix of specific tags (sabiduria diaria, motivacion, psicologia, mente, {clean_speaker.lower()}) and top search queries.\n\n"
             "4. CATEGORY: 'Education'.\n\n"
             f"ORIGINAL TITLE: {original_title}\n"
             f"ORIGINAL DESCRIPTION SNIPPET: {original_description[:400]}\n"
@@ -463,9 +469,21 @@ def spin_motivational_metadata(
             raw_title = re.sub(r'^(motivational\s+(?:speaker|leader|speech)\s*[:\-–—]\s*)', '', raw_title, flags=re.IGNORECASE).strip()
             raw_title = re.sub(r'^(sabidur[ií]a\s+diaria\s*[:\-–—]\s*)', '', raw_title, flags=re.IGNORECASE).strip()
             raw_title = re.sub(r'^(orador\s+motivacional\s*[:\-–—]\s*)', '', raw_title, flags=re.IGNORECASE).strip()
+        elif clean_speaker:
+            # Strip accidental "Speaker:" or "Dra. Speaker:" prefix from beginning if LLM generated it
+            prefix_pattern = rf"^(?:dra\.?\s+)?{re.escape(clean_speaker)}\s*[:\-–—]\s*"
+            if re.search(prefix_pattern, raw_title, re.IGNORECASE):
+                raw_title = re.sub(prefix_pattern, '', raw_title, flags=re.IGNORECASE).strip()
+            # If speaker not in title, append cleanly at the end
+            if clean_speaker.lower() not in raw_title.lower():
+                raw_title = f"{raw_title} | {clean_speaker}"
 
-        title = truncate_title(raw_title, max_length=70)
+        title = truncate_title(raw_title, max_length=78)
         desc = data.get("description", "")
+        # Ensure description begins with hashtags if not already present
+        if clean_speaker and not desc.strip().startswith("#"):
+            tag_line = f"#{clean_speaker.lower().replace(' ', '')} #neurociencia #superacionpersonal #sabiduriadiaria\n\n"
+            desc = tag_line + desc.strip()
         tags = data.get("tags", ["sabiduria diaria", "motivacion", "psicologia", "mente"])
         cat = data.get("category", "Education")
 
