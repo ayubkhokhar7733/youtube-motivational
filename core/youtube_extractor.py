@@ -44,14 +44,24 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
     for c_path in cache_candidates:
         if os.path.exists(c_path) and os.path.getsize(c_path) > 1000:
             print(f"[youtube_extractor] Found local cached audio: {c_path} ({os.path.getsize(c_path)/1024/1024:.2f} MB) - skipping YouTube download!")
+            info_json_path = os.path.join(repo_root, "data", "incoming_audio", f"{video_id}_info.json")
+            if os.path.exists(info_json_path):
+                try:
+                    with open(info_json_path, "r", encoding="utf-8") as f:
+                        meta = json.load(f)
+                    meta["audio_path"] = c_path
+                    return meta
+                except Exception as e:
+                    print(f"[youtube_extractor] Warning loading {info_json_path}: {e}")
+
             return {
                 "audio_path": c_path,
                 "video_id": video_id,
-                "title": "7 COSAS que TU CEREBRO necesita que guardes en secreto | Nazareth Castellanos",
-                "description": "#nazarethcastellanos #neurociencia #superaciónpersonal\n¿Alguna vez contaste un proyecto que te ilusionaba y a los pocos días perdiste las ganas? En este video descubrirás, según la neurociencia y la psicología, las 7 cosas que nunca deberías contarle a nadie.",
-                "tags": ["nazareth castellanos", "neurociencia", "cerebro", "habitos", "sabiduria", "psicologia", "estoicismo"],
-                "uploader": "Sabiduría Diaria",
-                "duration": 1804.0,
+                "title": "Lo que más protege TU CEREBRO en LA VEJEZ no es la compañía | Nazareth Castellanos",
+                "description": "#nazarethcastellanos #neurociencia #bienestar #sabiduriadiaria\nEn este video descubrirás, según la neurociencia con la Dra. Nazareth Castellanos, qué es la reserva cognitiva y por qué protege tu cerebro en la vejez.",
+                "tags": ["nazareth castellanos", "neurociencia", "cerebro", "vejez", "reserva cognitiva", "sabiduria diaria", "psicologia"],
+                "uploader": "NEURO CIENCIA",
+                "duration": 2350.0,
                 "thumbnail_url": f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg",
                 "webpage_url": url,
             }

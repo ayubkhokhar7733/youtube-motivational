@@ -415,7 +415,11 @@ def run_pipeline(
             mock=mock_script,
         )
         meta_time = time.time() - meta_start
-        final_youtube_title = metadata["title"]
+        # Preserve exact winning title if source title already uses the proven [Hook | Speaker] format
+        if source_title and "|" in source_title and len(source_title) <= 95:
+            final_youtube_title = source_title
+        else:
+            final_youtube_title = metadata["title"]
         topic_category = "Motivational"
         topic = final_youtube_title
         topic_item = {"topic": final_youtube_title, "category": topic_category, "speaker": detected_speaker}
@@ -503,7 +507,24 @@ def run_pipeline(
     badge_label = detected_speaker.upper() if (url and detected_speaker) else metadata.get("category", "MOTIVATION")
     
     thumbnail_path = None
-    if "nazareth" in (detected_speaker or "").lower() and os.path.exists(os.path.join(config.ASSETS_DIR, "clean_armchair_plate.jpg")):
+
+    # Check for direct pre-configured / matching reference thumbnail
+    video_id_match = re.search(r'(?:v=|\/)([0-9A-Za-z_-]{11})', url) if url else None
+    vid_id = video_id_match.group(1) if video_id_match else None
+    if vid_id:
+        for possible_thumb in [
+            os.path.join(config.ASSETS_DIR, "thumbnails", f"{vid_id}_thumb.jpg"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "incoming_audio", f"{vid_id}_thumb.jpg"),
+        ]:
+            if os.path.exists(possible_thumb) and os.path.getsize(possible_thumb) > 1000:
+                import shutil
+                target_thumb = os.path.join(config.OUTPUT_DIR, f"thumb_{vid_id}.jpg")
+                shutil.copy2(possible_thumb, target_thumb)
+                thumbnail_path = target_thumb
+                log(f"✅ Using exact winning reference thumbnail: {thumbnail_path}")
+                break
+
+    if not thumbnail_path and "nazareth" in (detected_speaker or "").lower() and os.path.exists(os.path.join(config.ASSETS_DIR, "clean_armchair_plate.jpg")):
         try:
             from generate_winning_armchair_thumb import render_winning_thumbnail
             thumb_name = f"thumb_{re.sub(r'[^a-zA-Z0-9]+', '_', final_youtube_title or 'video')[:35].lower()}.jpg"
