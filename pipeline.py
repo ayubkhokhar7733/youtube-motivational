@@ -153,9 +153,21 @@ def parse_args():
     parser.add_argument(
         "--privacy",
         type=str,
-        choices=["private", "unlisted", "public"],
-        default="private",
-        help="YouTube upload privacy status (default: private).",
+        choices=["private", "unlisted", "public", "scheduled"],
+        default="scheduled",
+        help="YouTube upload privacy status (default: scheduled).",
+    )
+    parser.add_argument(
+        "--schedule-hours",
+        type=int,
+        default=72,
+        help="Schedule release interval in hours (default: 72 for 3-day cycle).",
+    )
+    parser.add_argument(
+        "--publish-at",
+        type=str,
+        default=None,
+        help="Exact ISO 8601 release timestamp.",
     )
     parser.add_argument(
         "--logo",
@@ -244,7 +256,9 @@ def run_pipeline(
     extract_shorts_enabled: bool = True,
     upload_to_youtube: bool = False,
     upload_shorts_enabled: bool = False,
-    privacy: str = "private",
+    privacy: str = "scheduled",
+    schedule_hours: int = 72,
+    publish_at: str = None,
     logo_path: str = None,
     output_dir: str = None,
     keep_temp: bool = False,
@@ -632,6 +646,8 @@ def run_pipeline(
                 topic_category=topic_category,
                 thumbnail_path=thumbnail_path,
                 privacy_status=privacy,
+                publish_at=publish_at,
+                schedule_hours=schedule_hours,
                 contains_synthetic_media=True,
             )
             log(f"🎉 Video uploaded successfully: {upload_result.get('video_url')}")
@@ -763,6 +779,8 @@ def main():
                     upload_to_youtube=args.upload,
                     upload_shorts_enabled=args.upload_shorts,
                     privacy=args.privacy,
+                    schedule_hours=args.schedule_hours,
+                    publish_at=args.publish_at,
                     logo_path=args.logo,
                     output_dir=args.output_dir,
                     keep_temp=args.keep_temp,
@@ -788,6 +806,8 @@ def main():
             upload_to_youtube=args.upload,
             upload_shorts_enabled=args.upload_shorts,
             privacy=args.privacy,
+            schedule_hours=args.schedule_hours,
+            publish_at=args.publish_at,
             logo_path=args.logo,
             output_dir=args.output_dir,
             keep_temp=args.keep_temp,

@@ -43,12 +43,18 @@ on:
       privacy:
         description: 'YouTube upload privacy'
         required: false
-        default: 'private'
+        default: 'scheduled'
         type: choice
         options:
+          - scheduled
           - private
           - unlisted
           - public
+      schedule_hours:
+        description: 'Schedule interval in hours (default: 72 for 3-day release cycle)'
+        required: false
+        default: '72'
+        type: string
       dry_run:
         description: 'Dry run test (no rendering/upload)'
         required: false
@@ -142,8 +148,9 @@ jobs:
           fi
           
           if [ "${{ github.event.inputs.upload }}" = "true" ] && [ -n "${{ secrets.YOUTUBE_REFRESH_TOKEN }}" ] && [ "${{ github.event.inputs.dry_run }}" != "true" ] && [ "${{ github.event.inputs.audio_only }}" != "true" ]; then
-            PRIVACY="${{ github.event.inputs.privacy || 'private' }}"
-            CMD="$CMD --upload --upload-shorts --privacy $PRIVACY"
+            PRIVACY="${{ github.event.inputs.privacy || 'scheduled' }}"
+            SCHEDULE_HOURS="${{ github.event.inputs.schedule_hours || '72' }}"
+            CMD="$CMD --upload --upload-shorts --privacy $PRIVACY --schedule-hours $SCHEDULE_HOURS"
           fi
           
           echo "🚀 Running Cloud Pipeline: $CMD"

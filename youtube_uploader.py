@@ -19,7 +19,7 @@ import json
 import random
 import re
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 # UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -250,6 +250,77 @@ def upload_thumbnail(youtube, video_id: str, thumbnail_path: str, max_retries: i
     return False
 
 
+def get_next_schedule_slot(youtube=None, hours_interval: int = 72, target_hour_utc: int = 16) -> str:
+    """
+    Calculates the next optimal publishAt timestamp in ISO 8601 format (e.g. 2026-11-08T16:00:00Z).
+    Queries YouTube to find the latest published or scheduled long-form video, then spaces the next
+    release by `hours_interval` (default 72 hours / 3 days) at `target_hour_utc` (16:00 UTC / 9:00 PM PKT).
+    """
+    latest_dt = None
+    if youtube:
+        try:
+            res = youtube.channels().list(mine=True, part="contentDetails").execute()
+            upl_id = res["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+            items = youtube.playlistItems().list(playlistId=upl_id, part="contentDetails", maxResults=10).execute().get("items", [])
+            vids = [i["contentDetails"]["videoId"] for i in items]
+            if vids:
+                vdata = youtube.videos().list(id=",".join(vids), part="snippet,status").execute().get("items", [])
+                for v in vdata:
+                    v_title = v.get("snippet", {}).get("title", "")
+                    if "#Shorts" in v_title or "#shorts" in v_title:
+                        continue
+                    pub_at = v.get("status", {}).get("publishAt") or v.get("snippet", {}).get("publishedAt")
+                    if pub_at:
+                        dt = datetime.fromisoformat(pub_at.replace("Z", "+00:00"))
+                        if latest_dt is None or dt > latest_dt:
+                            latest_dt = dt
+        except Exception as e:
+            print(f"⚠️ Could not fetch latest upload date from YouTube: {e}")
+
+    now_utc = datetime.now(timezone.utc)
+    if not latest_dt or latest_dt < now_utc - timedelta(days=14):
+        latest_dt = now_utc
+
+    next_slot = latest_dt + timedelta(hours=hours_interval)
+    # Align to standard channel prime-time release window: 16:00 UTC (9:00 PM PKT)
+    next_slot = next_slot.replace(hour=target_hour_utc, minute=0, second=0, microsecond=0)
+
+    # Must be in the future (at least 1 hour ahead)
+    if next_slot <= now_utc + timedelta(hours=1):
+        next_slot = (now_utc + timedelta(days=1)).replace(hour=target_hour_utc, minute=0, second=0, microsecond=0)
+
+    return next_slot.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def schedule_video(
+    video_id: str,
+    publish_at: str = None,
+    hours_from_last: int = 72,
+    client_id: str = None,
+    client_secret: str = None,
+    refresh_token: str = None,
+) -> dict:
+    """Schedules an existing video on YouTube to go public at an ISO timestamp or after 72h."""
+    youtube = get_youtube_client(client_id, client_secret, refresh_token)
+    if not publish_at:
+        publish_at = get_next_schedule_slot(youtube, hours_interval=hours_from_last)
+
+    print(f"⏰ Scheduling video {video_id} for release at {publish_at} (UTC)...")
+    update_req = youtube.videos().update(
+        part="status",
+        body={
+            "id": video_id,
+            "status": {
+                "privacyStatus": "private",
+                "publishAt": publish_at,
+            },
+        },
+    )
+    res = update_req.execute()
+    print(f"✅ Video {video_id} successfully scheduled for {publish_at}!")
+    return res
+
+
 def upload_video(
     video_path: str,
     title: str,
@@ -259,6 +330,8 @@ def upload_video(
     topic_category: str = None,
     thumbnail_path: str = None,
     privacy_status: str = "private",
+    publish_at: str = None,
+    schedule_hours: int = None,
     contains_synthetic_media: bool = False,
     self_declared_made_for_kids: bool = False,
     client_id: str = None,
@@ -318,6 +391,28 @@ def upload_video(
     is_spanish = bool(re.search(r'[áéíóúñ¿¡]', f"{clean_title} {description}", re.IGNORECASE)) or any(w in f" {clean_title.lower()} " for w in [" en ", " de ", " la ", " el ", " tu ", " que ", " como ", " para ", " mente ", " cerebro ", " vida "])
     lang_code = "es" if is_spanish else "en"
 
+    # Scheduling handling (72-hour cadence)
+    scheduled_publish_time = None
+    if publish_at:
+        scheduled_publish_time = publish_at
+    elif str(privacy_status).lower() == "scheduled" or schedule_hours:
+        hours = int(schedule_hours) if schedule_hours else 72
+        try:
+            yt_temp = get_youtube_client(client_id, client_secret, refresh_token)
+            scheduled_publish_time = get_next_schedule_slot(yt_temp, hours_interval=hours)
+        except Exception as e:
+            fallback_dt = (datetime.now(timezone.utc) + timedelta(hours=hours)).replace(hour=16, minute=0, second=0, microsecond=0)
+            scheduled_publish_time = fallback_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    body_status = {
+        "privacyStatus": "private" if scheduled_publish_time else privacy_status,
+        "containsSyntheticMedia": contains_synthetic_media,  # Verified disclosure flag per v3 spec
+        "selfDeclaredMadeForKids": self_declared_made_for_kids,
+    }
+    if scheduled_publish_time:
+        body_status["publishAt"] = scheduled_publish_time
+        print(f"⏰ [Schedule] Setting YouTube publishAt to: {scheduled_publish_time} (UTC)")
+
     # Video resource body
     body = {
         "snippet": {
@@ -328,11 +423,7 @@ def upload_video(
             "defaultLanguage": lang_code,
             "defaultAudioLanguage": lang_code,
         },
-        "status": {
-            "privacyStatus": privacy_status,
-            "containsSyntheticMedia": contains_synthetic_media,  # Verified disclosure flag per v3 spec
-            "selfDeclaredMadeForKids": self_declared_made_for_kids,
-        },
+        "status": body_status,
     }
 
     if dry_run:
@@ -439,7 +530,8 @@ def upload_video(
         "video_id": video_id,
         "video_url": video_url,
         "title": clean_title,
-        "privacy_status": privacy_status,
+        "privacy_status": "scheduled" if scheduled_publish_time else privacy_status,
+        "scheduled_publish_at": scheduled_publish_time,
         "contains_synthetic_media": contains_synthetic_media,
         "thumbnail_uploaded": thumbnail_ok,
         "playlist_id": playlist_id,
@@ -503,7 +595,9 @@ def main():
     parser.add_argument("--category", type=str, default=None, help="Category (Education, Science & Technology).")
     parser.add_argument("--topic-category", type=str, default=None, help="Topic playlist category (e.g. Ancient History).")
     parser.add_argument("--thumbnail", type=str, default=None, help="Path to custom thumbnail JPEG.")
-    parser.add_argument("--privacy", type=str, choices=["private", "unlisted", "public"], default="private", help="Privacy setting.")
+    parser.add_argument("--privacy", type=str, choices=["private", "unlisted", "public", "scheduled"], default="private", help="Privacy setting.")
+    parser.add_argument("--schedule-hours", type=int, default=None, help="Schedule release interval in hours (default: 72).")
+    parser.add_argument("--publish-at", type=str, default=None, help="Exact ISO 8601 release timestamp.")
     parser.add_argument("--no-synthetic-flag", action="store_true", help="Disable synthetic media disclosure.")
     parser.add_argument("--dry-run", action="store_true", help="Validate request body without sending to YouTube.")
 
@@ -551,6 +645,8 @@ def main():
         topic_category=topic_category,
         thumbnail_path=thumbnail_path,
         privacy_status=args.privacy,
+        publish_at=args.publish_at,
+        schedule_hours=args.schedule_hours,
         contains_synthetic_media=not args.no_synthetic_flag,
         dry_run=args.dry_run,
     )
