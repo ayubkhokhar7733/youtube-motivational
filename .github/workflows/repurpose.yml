@@ -55,6 +55,11 @@ on:
         required: false
         default: '72'
         type: string
+      publish_at:
+        description: 'Exact ISO 8601 publish timestamp (e.g. 2026-11-08T16:00:00Z). Overrides schedule_hours.'
+        required: false
+        default: ''
+        type: string
       dry_run:
         description: 'Dry run test (no rendering/upload)'
         required: false
@@ -151,6 +156,9 @@ jobs:
             PRIVACY="${{ github.event.inputs.privacy || 'scheduled' }}"
             SCHEDULE_HOURS="${{ github.event.inputs.schedule_hours || '72' }}"
             CMD="$CMD --upload --upload-shorts --privacy $PRIVACY --schedule-hours $SCHEDULE_HOURS"
+            if [ -n "${{ github.event.inputs.publish_at }}" ]; then
+              CMD="$CMD --publish-at \"${{ github.event.inputs.publish_at }}\""
+            fi
           fi
           
           echo "🚀 Running Cloud Pipeline: $CMD"
