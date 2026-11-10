@@ -675,7 +675,7 @@ def run_pipeline(
                         category=short_item.get("category", "Education"),
                         topic_category="Shorts",
                         thumbnail_path=None,
-                        privacy_status=privacy,
+                        privacy_status="private",
                         contains_synthetic_media=True,
                     )
                     short_item["upload_result"] = short_upload_res
