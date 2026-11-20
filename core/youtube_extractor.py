@@ -1,3 +1,4 @@
+import math
 # -*- coding: utf-8 -*-
 """
 core/youtube_extractor.py — YouTube Audio & Metadata Downloader, Groq Whisper Transcriber,
@@ -159,10 +160,21 @@ def extract_youtube_audio_and_metadata(url: str, output_dir: str = None) -> dict
 # 2. Audio Compression for Groq API (25 MB limit safeguard)
 # ---------------------------------------------------------------------------
 
+def _get_audio_duration_seconds(audio_path: str) -> float:
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    cmd = [ffmpeg_exe, "-nostdin", "-i", audio_path]
+    res = subprocess.run(cmd, capture_output=True, text=True, errors="ignore")
+    m = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", res.stderr)
+    if m:
+        h, mn, s = float(m.group(1)), float(m.group(2)), float(m.group(3))
+        return h * 3600 + mn * 60 + s
+    return 0.0
+
+
 def compress_audio_if_needed(audio_path: str, max_mb: float = 24.0) -> str:
     """
-    Checks audio file size. If over max_mb, converts to 64kbps mono MP3
-    which preserves voice clarity while drastically reducing file size (~0.48 MB/min).
+    Checks audio file size. If over max_mb, converts to 48kbps mono MP3
+    which preserves voice clarity while drastically reducing file size (~0.36 MB/min).
     """
     if not os.path.exists(audio_path):
         return audio_path
@@ -180,7 +192,7 @@ def compress_audio_if_needed(audio_path: str, max_mb: float = 24.0) -> str:
         "-i", audio_path,
         "-ac", "1",
         "-ar", "16000",
-        "-b:a", "64k",
+        "-b:a", "48k",
         compressed_path
     ]
     res = subprocess.run(cmd, capture_output=True, stdin=subprocess.DEVNULL)
@@ -190,6 +202,20 @@ def compress_audio_if_needed(audio_path: str, max_mb: float = 24.0) -> str:
         return compressed_path
 
     return audio_path
+
+
+def _transcribe_audio_file_groq(client, file_path: str) -> tuple:
+    with open(file_path, "rb") as f:
+        response = client.audio.transcriptions.create(
+            model="whisper-large-v3",
+            file=f,
+            response_format="verbose_json",
+            timestamp_granularities=["word", "segment"],
+        )
+    text = getattr(response, "text", "") or ""
+    segments = getattr(response, "segments", []) or []
+    words = getattr(response, "words", []) or []
+    return text, segments, words
 
 
 # ---------------------------------------------------------------------------
@@ -207,6 +233,8 @@ def _sec_to_srt_time(seconds: float) -> str:
 def transcribe_audio_groq(audio_path: str, srt_output_path: str = None) -> dict:
     """
     Transcribes audio using Groq Whisper API (whisper-large-v3).
+    Automatically splits long audio files (>24 MB) into time-synced chunks
+    to avoid HTTP 413 Request Entity Too Large errors.
     Returns transcript text, millisecond word timestamps, segments, and writes .srt subtitles.
     """
     import config
@@ -218,35 +246,84 @@ def transcribe_audio_groq(audio_path: str, srt_output_path: str = None) -> dict:
     client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
 
     usable_audio = compress_audio_if_needed(audio_path)
+    file_size_mb = os.path.getsize(usable_audio) / (1024 * 1024)
 
-    print(f"[youtube_extractor] Transcribing speech with Groq Whisper (whisper-large-v3)...")
     start_t = time.time()
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
 
-    with open(usable_audio, "rb") as f:
-        response = client.audio.transcriptions.create(
-            model="whisper-large-v3",
-            file=f,
-            response_format="verbose_json",
-            timestamp_granularities=["word", "segment"],
-        )
+    if file_size_mb <= 24.0:
+        print(f"[youtube_extractor] Transcribing speech with Groq Whisper (whisper-large-v3)...")
+        transcript_text, segments, words = _transcribe_audio_file_groq(client, usable_audio)
+    else:
+        total_duration = _get_audio_duration_seconds(usable_audio)
+        chunk_length_sec = 600.0  # 10 minutes per chunk (~3.6 MB at 48k)
+        num_chunks = math.ceil(total_duration / chunk_length_sec)
+        print(f"[youtube_extractor] Large audio ({file_size_mb:.2f} MB, {total_duration:.1f}s) exceeds Groq 25MB limit. Splitting into {num_chunks} chunks of {chunk_length_sec}s...")
+
+        all_text_parts = []
+        all_segments = []
+        all_words = []
+
+        chunk_dir = os.path.join(config.TEMP_DIR, "whisper_chunks")
+        os.makedirs(chunk_dir, exist_ok=True)
+
+        for chunk_idx in range(num_chunks):
+            chunk_start = chunk_idx * chunk_length_sec
+            chunk_file = os.path.join(chunk_dir, f"chunk_{chunk_idx:03d}.mp3")
+            split_cmd = [
+                ffmpeg_exe, "-y", "-nostdin",
+                "-ss", str(chunk_start),
+                "-t", str(chunk_length_sec),
+                "-i", usable_audio,
+                "-ac", "1",
+                "-ar", "16000",
+                "-b:a", "48k",
+                chunk_file
+            ]
+            subprocess.run(split_cmd, capture_output=True, stdin=subprocess.DEVNULL)
+            if not os.path.exists(chunk_file) or os.path.getsize(chunk_file) < 500:
+                continue
+
+            print(f"  [youtube_extractor] Transcribing chunk {chunk_idx + 1}/{num_chunks} (offset +{chunk_start:.1f}s)...")
+            c_text, c_segs, c_words = _transcribe_audio_file_groq(client, chunk_file)
+
+            if c_text:
+                all_text_parts.append(c_text.strip())
+
+            for seg in c_segs:
+                s_dict = seg if isinstance(seg, dict) else seg.__dict__
+                s_copy = dict(s_dict)
+                s_copy["start"] = float(s_copy.get("start", 0.0)) + chunk_start
+                s_copy["end"] = float(s_copy.get("end", 0.0)) + chunk_start
+                all_segments.append(s_copy)
+
+            for w in c_words:
+                w_dict = w if isinstance(w, dict) else w.__dict__
+                w_copy = dict(w_dict)
+                w_copy["start"] = float(w_copy.get("start", 0.0)) + chunk_start
+                w_copy["end"] = float(w_copy.get("end", 0.0)) + chunk_start
+                all_words.append(w_copy)
+
+            try:
+                os.remove(chunk_file)
+            except OSError:
+                pass
+
+        transcript_text = " ".join(all_text_parts)
+        segments = all_segments
+        words = all_words
 
     transcription_time = time.time() - start_t
     print(f"[youtube_extractor] Whisper transcription completed in {transcription_time:.1f}s.")
-
-    transcript_text = getattr(response, "text", "") or ""
-    segments = getattr(response, "segments", []) or []
-    words = getattr(response, "words", []) or []
 
     if not srt_output_path:
         srt_output_path = os.path.join(config.TEMP_DIR, "subtitles.srt")
     os.makedirs(os.path.dirname(srt_output_path), exist_ok=True)
 
-    # Build word-level / short-phrase SRT chunks for fast dynamic subtitle display
     srt_blocks = []
     block_idx = 1
 
     if words:
-        # Group words into 3-4 word rapid subtitle bursts
         current_burst = []
         for i, w in enumerate(words):
             w_text = w.get("word", "") if isinstance(w, dict) else getattr(w, "word", "")
@@ -255,8 +332,7 @@ def transcribe_audio_groq(audio_path: str, srt_output_path: str = None) -> dict:
 
             current_burst.append((w_start, w_end, w_text.strip()))
             is_terminal = w_text.strip().endswith((".", "?", "!", ":", ";"))
-            
-            # Check for vocal pause
+
             has_pause = False
             if i + 1 < len(words):
                 next_w = words[i + 1]
