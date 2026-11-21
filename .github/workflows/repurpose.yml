@@ -26,9 +26,9 @@ on:
           - landscape
           - portrait
       duration:
-        description: 'Clip Duration in seconds (e.g. 180 for 3m, 300 for 5m, or 0 for full audio)'
+        description: 'Clip Duration in seconds: 0 for full audio (default), or e.g. 600 for 10m, 900 for 15m'
         required: false
-        default: '180'
+        default: '0'
         type: string
       audio_only:
         description: 'Test mode: Audio extraction & transcription only'
