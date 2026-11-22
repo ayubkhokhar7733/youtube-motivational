@@ -1,0 +1,57 @@
+name: Update YouTube Thumbnail
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_id:
+        description: 'YouTube Video ID'
+        required: true
+        default: 'SE48oVlBvek'
+      thumbnail_path:
+        description: 'Path to thumbnail image file in repo'
+        required: true
+        default: 'assets/thumbnails/xQNt8eJmyOQ_thumb.jpg'
+
+jobs:
+  update-thumb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+
+      - name: Update Thumbnail
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          python -c "
+          import os
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaFileUpload
+          from google.oauth2.credentials import Credentials
+          import google.auth.transport.requests
+
+          cid = os.environ['YOUTUBE_CLIENT_ID']
+          csec = os.environ['YOUTUBE_CLIENT_SECRET']
+          rtoken = os.environ['YOUTUBE_REFRESH_TOKEN']
+
+          creds = Credentials(token=None, refresh_token=rtoken, token_uri='https://oauth2.googleapis.com/token', client_id=cid, client_secret=csec)
+          creds.refresh(google.auth.transport.requests.Request())
+          yt = build('youtube', 'v3', credentials=creds)
+
+          vid = '${{ github.event.inputs.video_id }}'
+          path = '${{ github.event.inputs.thumbnail_path }}'
+          print(f'Setting thumbnail for {vid} from {path}...')
+          res = yt.thumbnails().set(videoId=vid, media_body=MediaFileUpload(path, mimetype='image/jpeg')).execute()
+          print('Success:', res)
+          "
