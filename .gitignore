@@ -8,6 +8,7 @@ client_secret*.json
 AUTH_URL.txt
 credentials.json
 token.json
+fb_perm_token.json
 
 
 # Python cache & artifacts

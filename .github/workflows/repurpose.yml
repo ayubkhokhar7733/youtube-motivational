@@ -65,6 +65,11 @@ on:
         required: false
         default: false
         type: boolean
+      upload_facebook:
+        description: 'Auto-publish video and Reels to Facebook Page (Sabiduría Diaria)'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -124,6 +129,9 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          UPLOAD_FACEBOOK: ${{ github.event.inputs.upload_facebook }}
           CI: 'true'
         run: |
           CMD="python pipeline.py --url \"${{ github.event.inputs.youtube_url }}\""

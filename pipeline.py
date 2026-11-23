@@ -683,6 +683,57 @@ def run_pipeline(
                 except Exception as e:
                     log(f"   ⚠️ Short {idx} upload warning: {e}")
 
+    # ── 9c. Facebook Cross-Platform Auto-Post (Safe & Non-blocking) ──────────
+    fb_upload_result = None
+    fb_reels_results = []
+    # Trigger Facebook publishing if explicitly enabled or if upload was requested and FB credentials exist
+    fb_token_present = bool(os.environ.get("FB_PAGE_ACCESS_TOKEN") or os.environ.get("FB_PAGE_ID"))
+    if not fb_token_present:
+        # Check local config file
+        local_fb_cfg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fb_perm_token.json")
+        fb_token_present = os.path.exists(local_fb_cfg)
+
+    should_upload_fb = (upload_to_youtube or os.environ.get("UPLOAD_FACEBOOK", "").lower() in ("true", "1")) and fb_token_present and not dry_run
+
+    if should_upload_fb and output_video_path and os.path.exists(output_video_path):
+        log("🚀 [Facebook Upload] Uploading native long-form video to Facebook Page...")
+        try:
+            import facebook_uploader
+            # Clean description for Facebook (remove raw YouTube hashtags or duplicate technical tags if any)
+            fb_description = metadata.get("description", "")
+            fb_upload_result = facebook_uploader.upload_video(
+                video_path=output_video_path,
+                title=final_youtube_title,
+                description=fb_description,
+                thumbnail_path=thumbnail_path,
+                published=True
+            )
+            if fb_upload_result and fb_upload_result.get("status") == "success":
+                log(f"🎉 [Facebook Upload] Video published: {fb_upload_result.get('video_url')}")
+            else:
+                log(f"⚠️ [Facebook Upload] Video upload info: {fb_upload_result}")
+        except Exception as fb_err:
+            log(f"⚠️ [Facebook Upload] Safe warning (did not affect YouTube): {fb_err}")
+
+        # Upload extracted Shorts as Facebook Reels
+        if upload_shorts_enabled and shorts_list:
+            log(f"📱 [Facebook Upload] Uploading {len(shorts_list)} Reels to Facebook Page...")
+            for idx, short_item in enumerate(shorts_list, 1):
+                short_video_path = short_item.get("video_path")
+                if short_video_path and os.path.exists(short_video_path):
+                    short_title = short_item.get("title", f"{topic[:50]}")
+                    try:
+                        import facebook_uploader
+                        reel_res = facebook_uploader.upload_reel(
+                            reel_path=short_video_path,
+                            description=short_title
+                        )
+                        fb_reels_results.append(reel_res)
+                        if reel_res and reel_res.get("status") == "success":
+                            log(f"   🎉 [Facebook Reel] Reel {idx} published: {reel_res.get('reel_url')}")
+                    except Exception as reel_err:
+                        log(f"   ⚠️ [Facebook Reel] Reel {idx} warning (did not affect YouTube): {reel_err}")
+
     # ── 10. Post-processing & Memory Record ──────────────────────────────────
     total_elapsed = time.time() - start_time
 
@@ -720,6 +771,8 @@ def run_pipeline(
         "thumbnail_path": thumbnail_path,
         "video_path": output_video_path,
         "upload": upload_result,
+        "facebook_upload": fb_upload_result,
+        "facebook_reels": fb_reels_results,
         "shorts": shorts_list,
         "duration_sec": voice_duration,
         "scene_count": scene_count,
