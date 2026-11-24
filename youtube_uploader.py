@@ -99,11 +99,6 @@ def get_youtube_client(client_id: str = None, client_secret: str = None, refresh
         token_uri="https://oauth2.googleapis.com/token",
         client_id=cid,
         client_secret=csec,
-        scopes=[
-            "https://www.googleapis.com/auth/youtube.upload",
-            "https://www.googleapis.com/auth/youtube",
-            "https://www.googleapis.com/auth/youtube.force-ssl",
-        ],
     )
 
     try:
@@ -111,7 +106,8 @@ def get_youtube_client(client_id: str = None, client_secret: str = None, refresh
         creds.refresh(req_adapter)
         print("🔑 Successfully refreshed & verified YouTube OAuth token.")
     except Exception as e:
-        print(f"⚠️ Warning during explicit OAuth token refresh: {e}")
+        print(f"❌ YouTube OAuth token refresh failed: {e}")
+        raise
 
     return googleapiclient.discovery.build("youtube", "v3", credentials=creds)
 
