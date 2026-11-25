@@ -706,7 +706,7 @@ def run_pipeline(
                 title=final_youtube_title,
                 description=fb_description,
                 thumbnail_path=thumbnail_path,
-                published=True
+                published=False
             )
             if fb_upload_result and fb_upload_result.get("status") == "success":
                 log(f"🎉 [Facebook Upload] Video published: {fb_upload_result.get('video_url')}")
@@ -726,7 +726,8 @@ def run_pipeline(
                         import facebook_uploader
                         reel_res = facebook_uploader.upload_reel(
                             reel_path=short_video_path,
-                            description=short_title
+                            description=short_title,
+                            published=False
                         )
                         fb_reels_results.append(reel_res)
                         if reel_res and reel_res.get("status") == "success":

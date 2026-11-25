@@ -56,7 +56,7 @@ def upload_video(
     thumbnail_path: str = None,
     page_id: str = None,
     access_token: str = None,
-    published: bool = True
+    published: bool = False
 ) -> dict:
     """
     Uploads a long-form video to the Facebook Page with title, description, and custom thumbnail.
@@ -130,7 +130,8 @@ def upload_reel(
     reel_path: str,
     description: str,
     page_id: str = None,
-    access_token: str = None
+    access_token: str = None,
+    published: bool = False
 ) -> dict:
     """
     Uploads a 9:16 vertical Short as a Facebook Reel.
@@ -154,7 +155,7 @@ def upload_reel(
         data = {
             "access_token": tok,
             "description": description,
-            "published": "true"
+            "published": "true" if published else "false"
         }
 
         with open(reel_path, "rb") as rf:
