@@ -75,11 +75,101 @@ def upload_video(
             print(f"⚠️ [Facebook Uploader] Video file not found: {video_path}. Skipping.")
             return {"status": "skipped", "reason": "video_not_found"}
 
-        file_size_mb = os.path.getsize(video_path) / (1024 * 1024)
+        file_size_bytes = os.path.getsize(video_path)
+        file_size_mb = file_size_bytes / (1024 * 1024)
         print(f"\n🚀 [Facebook Uploader] Uploading video to Page ({file_size_mb:.1f} MB)...")
         print(f"   Title: \"{title}\"")
 
         url = f"https://graph-video.facebook.com/v20.0/{pid}/videos"
+
+        # Use Resumable Chunked Upload for files > 900 MB (Facebook single-POST limit is 1 GB)
+        if file_size_mb > 900:
+            print("   📦 File > 900 MB — using Facebook Resumable Chunked Upload...")
+            # Phase 1: Start
+            start_res = requests.post(
+                url,
+                data={
+                    "access_token": tok,
+                    "upload_phase": "start",
+                    "file_size": str(file_size_bytes),
+                },
+                timeout=60,
+            )
+            start_data = start_res.json()
+            if "upload_session_id" not in start_data:
+                print(f"⚠️ [Facebook Uploader] Chunked start failed: {start_data}")
+                return {"status": "error", "error": start_data}
+
+            session_id = start_data["upload_session_id"]
+            fb_video_id = start_data.get("video_id")
+            start_offset = int(start_data["start_offset"])
+            end_offset = int(start_data["end_offset"])
+
+            # Phase 2: Transfer chunks
+            chunk_num = 0
+            with open(video_path, "rb") as vf:
+                while start_offset < file_size_bytes:
+                    chunk_num += 1
+                    chunk_size = end_offset - start_offset
+                    if chunk_size <= 0:
+                        break
+                    vf.seek(start_offset)
+                    chunk_bytes = vf.read(chunk_size)
+                    pct = (end_offset / file_size_bytes) * 100
+                    print(f"   ⬆️ Chunk {chunk_num}: {start_offset // (1024*1024)}–{end_offset // (1024*1024)} MB ({pct:.1f}%)")
+
+                    tr_res = requests.post(
+                        url,
+                        data={
+                            "access_token": tok,
+                            "upload_phase": "transfer",
+                            "upload_session_id": session_id,
+                            "start_offset": str(start_offset),
+                        },
+                        files={"video_file_chunk": ("chunk.mp4", chunk_bytes, "application/octet-stream")},
+                        timeout=300,
+                    )
+                    tr_data = tr_res.json()
+                    if "start_offset" not in tr_data:
+                        print(f"⚠️ [Facebook Uploader] Chunk {chunk_num} failed: {tr_data}")
+                        return {"status": "error", "error": tr_data}
+                    start_offset = int(tr_data["start_offset"])
+                    end_offset = int(tr_data["end_offset"])
+
+            # Phase 3: Finish
+            finish_data = {
+                "access_token": tok,
+                "upload_phase": "finish",
+                "upload_session_id": session_id,
+                "title": title,
+                "description": description,
+                "published": "true" if published else "false",
+            }
+            tf = None
+            files = {}
+            try:
+                if thumbnail_path and os.path.exists(thumbnail_path):
+                    tf = open(thumbnail_path, "rb")
+                    files["thumb"] = tf
+                    print(f"   Custom Thumbnail: {os.path.basename(thumbnail_path)}")
+                fin_res = requests.post(url, data=finish_data, files=files if files else None, timeout=120)
+            finally:
+                if tf:
+                    try:
+                        tf.close()
+                    except Exception:
+                        pass
+
+            fin_json = fin_res.json()
+            if fin_json.get("success") and fb_video_id:
+                video_url = f"https://www.facebook.com/{pid}/videos/{fb_video_id}"
+                print(f"🎉 [Facebook Uploader] Chunked upload complete! Video ID: {fb_video_id}")
+                print(f"🔗 Video URL: {video_url}")
+                return {"status": "success", "video_id": fb_video_id, "video_url": video_url}
+            else:
+                print(f"⚠️ [Facebook Uploader] Chunked finish returned: {fin_json}")
+                return {"status": "error", "error": fin_json}
+
         data = {
             "access_token": tok,
             "title": title,
